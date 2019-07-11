@@ -161,7 +161,7 @@ class CarController(object):
       if pcm_cancel_cmd:
         can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.CANCEL, idx))
       elif CS.stopped:
-        can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.RES_ACCEL, idx))
+        can_sends.append(hondacan.spam_buttons_command(self.packer, 5, idx))
 
     else:
       # Send gas and brake commands.
