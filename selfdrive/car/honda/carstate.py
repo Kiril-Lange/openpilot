@@ -226,7 +226,6 @@ class CarState(object):
     if self.CP.carFingerprint in (CAR.ACCORD, CAR.ACCORD_15, CAR.ACCORDH, CAR.INSIGHT, CAR.CIVIC_BOSCH, CAR.CRV_HYBRID): # TODO: find wheels moving bit in dbc
       self.standstill = cp.vl["ENGINE_DATA"]['XMISSION_SPEED'] < 0.1
       self.door_all_closed = not cp.vl["SCM_FEEDBACK"]['DRIVERS_DOOR_OPEN']
-      self.hud_distance = cp.v1["ACC_HUD"]["HUD_DISTANCE"]
     elif self.CP.carFingerprint == CAR.ODYSSEY_CHN:
       self.standstill = cp.vl["ENGINE_DATA"]['XMISSION_SPEED'] < 0.1
       self.door_all_closed = not cp.vl["SCM_BUTTONS"]['DRIVERS_DOOR_OPEN']
@@ -313,6 +312,7 @@ class CarState(object):
 
     if self.CP.radarOffCan:
       self.stopped = cp.vl["ACC_HUD"]['CRUISE_SPEED'] == 252.
+      self.hud_distance = cp.vl["ACC_HUD"]["HUD_DISTANCE"]
       self.cruise_speed_offset = calc_cruise_offset(0, self.v_ego)
       if self.CP.carFingerprint in (CAR.CIVIC_BOSCH, CAR.ACCORDH, CAR.INSIGHT, CAR.CRV_HYBRID):
         self.brake_switch = cp.vl["POWERTRAIN_DATA"]['BRAKE_SWITCH']
