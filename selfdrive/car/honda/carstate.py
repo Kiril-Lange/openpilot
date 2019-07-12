@@ -94,7 +94,8 @@ def get_can_signals(CP):
     signals += [("CAR_GAS", "GAS_PEDAL_2", 0),
                 ("MAIN_ON", "SCM_FEEDBACK", 0),
                 ("EPB_STATE", "EPB_STATUS", 0),
-                ("CRUISE_SPEED", "ACC_HUD", 0)]
+                ("CRUISE_SPEED", "ACC_HUD", 0),
+                ("HUD_DISTANCE", "ACC_HUD", 0)]
     checks += [("GAS_PEDAL_2", 100)]
   else:
     # Nidec signals.
@@ -189,6 +190,12 @@ class CarState(object):
     self.right_blinker_on = 0
 
     self.stopped = 0
+    
+    
+    self.hud_distance = 0;
+    
+    self.hud_dist_user = 0;
+    self.hud_dist_temp = 0;
 
     # vEgo kalman filter
     dt = 0.01
@@ -219,6 +226,7 @@ class CarState(object):
     if self.CP.carFingerprint in (CAR.ACCORD, CAR.ACCORD_15, CAR.ACCORDH, CAR.INSIGHT, CAR.CIVIC_BOSCH, CAR.CRV_HYBRID): # TODO: find wheels moving bit in dbc
       self.standstill = cp.vl["ENGINE_DATA"]['XMISSION_SPEED'] < 0.1
       self.door_all_closed = not cp.vl["SCM_FEEDBACK"]['DRIVERS_DOOR_OPEN']
+      self.hud_distance = cp.v1["ACC_HUD"]["HUD_DISTANCE"]
     elif self.CP.carFingerprint == CAR.ODYSSEY_CHN:
       self.standstill = cp.vl["ENGINE_DATA"]['XMISSION_SPEED'] < 0.1
       self.door_all_closed = not cp.vl["SCM_BUTTONS"]['DRIVERS_DOOR_OPEN']
