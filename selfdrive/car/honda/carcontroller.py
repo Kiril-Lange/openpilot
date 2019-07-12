@@ -163,9 +163,9 @@ class CarController(object):
       elif CS.stopped:
         can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.RES_ACCEL, idx))
       elif CS.left_blinker_on:
-        can_sends.append(hondacan.spam_buttons_command(self.packer, 5, idx))
+        can_sends.append(hondacan.spam_cruise_setting_command(self.packer, 3, idx))
       elif CS.right_blinker_on:
-        can_sends.append(hondacan.spam_buttons_command(self.packer, 6, idx))
+        can_sends.append(hondacan.spam_cruise_setting_command(self.packer, 0, idx))
 
     else:
       # Send gas and brake commands.
