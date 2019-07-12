@@ -163,7 +163,7 @@ class CarController(object):
       elif CS.stopped:
         can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.RES_ACCEL, idx))
       elif CS.hud_distance == 1:
-        if CS.cruise_setting == 0 
+        if CS.cruise_setting == 0:
           can_sends.append(hondacan.spam_cruise_setting_command(self.packer, 3, idx))
           CS.cruise_setting = 3
       elif CS.right_blinker_on:
