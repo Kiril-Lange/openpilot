@@ -94,7 +94,8 @@ def get_can_signals(CP):
     signals += [("CAR_GAS", "GAS_PEDAL_2", 0),
                 ("MAIN_ON", "SCM_FEEDBACK", 0),
                 ("EPB_STATE", "EPB_STATUS", 0),
-                ("CRUISE_SPEED", "ACC_HUD", 0)]
+                ("CRUISE_SPEED", "ACC_HUD", 0),
+                ("HUD_DISTANCE", "ACC_HUD", 0)]
     checks += [("GAS_PEDAL_2", 100)]
   else:
     # Nidec signals.
@@ -189,6 +190,12 @@ class CarState(object):
     self.right_blinker_on = 0
 
     self.stopped = 0
+    
+    
+    self.hud_distance = 0;
+    
+    self.hud_dist_user = 0;
+    self.hud_dist_temp = 0;
 
     # vEgo kalman filter
     dt = 0.01
@@ -305,6 +312,7 @@ class CarState(object):
 
     if self.CP.radarOffCan:
       self.stopped = cp.vl["ACC_HUD"]['CRUISE_SPEED'] == 252.
+      self.hud_distance = cp.vl["ACC_HUD"]["HUD_DISTANCE"]
       self.cruise_speed_offset = calc_cruise_offset(0, self.v_ego)
       if self.CP.carFingerprint in (CAR.CIVIC_BOSCH, CAR.ACCORDH, CAR.INSIGHT, CAR.CRV_HYBRID):
         self.brake_switch = cp.vl["POWERTRAIN_DATA"]['BRAKE_SWITCH']
