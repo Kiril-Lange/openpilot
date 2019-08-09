@@ -85,24 +85,37 @@ class CarController(object):
     self.last_pump_ts = 0.
     self.packer = CANPacker(dbc_name)
     self.new_radar_config = False
-    self.prev_lead_distance = 0.0
+
+    self.prev_lead_distance = 0.0 #previous lead distance in feet
     self.stopped_lead_distance = 0.0
-    self.lead_distance_counter = 1
-    self.lead_distance_counter_prev = 1
-    self.rough_lead_speed = 0.0
-    self.desired_lead_distance = 0
+    self.lead_distance_counter = 1.0 #seconds since last update
+    self.rough_lead_speed = 0.0 #delta ft/s
+    self.desired_lead_distance = 1 #distance bar
 
   # ft/s - lead_distance is in ft
+  # Must be called every frame and assumes 100hz (frames per second)
   def rough_speed(self, lead_distance):
+
+    #If we got an updated lead distance calculate the closing rate
     if self.prev_lead_distance != lead_distance:
-      self.lead_distance_counter_prev = self.lead_distance_counter
-      self.rough_lead_speed += 0.3334 * ((lead_distance - self.prev_lead_distance) / self.lead_distance_counter_prev - self.rough_lead_speed)
+      #delta distance is negative when approaching
+      delta_distance = lead_distance - self.prev_lead_distance
+      #delta_speed is distance / time (seconds when called at 100hz)
+      delta_speed = delta_distance / self.lead_distance_counter
+      #set the rough lead speed by feathering in the updated values
+      self.rough_lead_speed = 0.5 * delta_speed + 0.5 * self.rough_lead_speed
+      #reset lead distance counter
       self.lead_distance_counter = 0.0
-    elif self.lead_distance_counter >= self.lead_distance_counter_prev:
-      self.rough_lead_speed = (self.lead_distance_counter * self.rough_lead_speed) / (self.lead_distance_counter + 1.0)
-    self.lead_distance_counter += 1.0
-    self.prev_lead_distance = lead_distance
-    return self.rough_lead_speed
+      #update previous lead distance
+      self.prev_lead_distance = lead_distance
+    #If it has been a while since the last lead distance update, assume delta speed is zero
+    elif self.lead_distance_counter >= 2.0:
+      #reduce the lead speed to zero
+      self.rough_lead_speed = 0
+      #set distance counter to above zero to avoid high initial values
+      self.lead_distance_counter = 1.0
+    #increase counter by 0.01 (1/100 of a second)
+    self.lead_distance_counter += 0.01
 
   def get_TR(self, lead_distance, stopped):
     # Slow down sequentially if coming in at higher speed. Radar picks up at about 190ft to 200ft
@@ -200,34 +213,40 @@ class CarController(object):
       can_sends.extend(hondacan.create_ui_commands(self.packer, pcm_speed, hud, CS.CP.carFingerprint, CS.is_metric, idx, CS.CP.isPandaBlack))
 
 #    if CS.CP.carFingerprint in (CAR.INSIGHT):
-    if kegman.conf['simpledd'] == True and CS.CP.carFingerprint in (CAR.INSIGHT, CAR.ACCORD):
-      if frame % 25 < 5 and CS.hud_distance != (self.desired_lead_distance % 4):
-      # press distance bar button
-        can_sends.append(hondacan.spam_buttons_command(self.packer, 0, CruiseSettings.LEAD_DISTANCE, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
-        #print("     spamming distance: " + str((self.desired_lead_distance % 4)))
-      # always set cruise setting to 0 after button press
-        if frame % 50 < 15:
-          can_sends.append(hondacan.spam_buttons_command(self.packer, 0, CruiseSettings.RESET, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
-        #print("     spamming distance reset")
+    if CS.CP.carFingerprint in (CAR.INSIGHT, CAR.ACCORD):
+      #update the rough speed value store as self.rough_lead_speed
+      self.rough_speed(CS.lead_distance)
+      #if we are tying to modify distance bars do this:
+      if kegman.conf['simpledd'] == True:
+        #get the desired distance bar and store it as self.desired_lead_distance
+        self.get_TR(CS.lead_distance, CS.stopped)
+        #limit the rate distance bars can be pressed
+        if frame % 25 < 5 and CS.hud_distance != (self.desired_lead_distance % 4):
+        # press distance bar button
+          can_sends.append(hondacan.spam_buttons_command(self.packer, 0, CruiseSettings.LEAD_DISTANCE, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
+          #print("     spamming distance: " + str((self.desired_lead_distance % 4)))
+          # always set cruise setting to 0 after button press
+          if frame % 50 < 15:
+            can_sends.append(hondacan.spam_buttons_command(self.packer, 0, CruiseSettings.RESET, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
+            #print("     spamming distance reset")
 
     if CS.CP.radarOffCan:
-      self.get_TR(CS.lead_distance, CS.stopped)
       # If using stock ACC, spam cancel command to kill gas when OP disengages.
       if pcm_cancel_cmd:
         can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.CANCEL, 0, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
       elif CS.stopped:
         if CS.CP.carFingerprint in (CAR.INSIGHT):
-          rough_lead_speed = self.rough_speed(CS.lead_distance)
-          if CS.lead_distance > (self.stopped_lead_distance + 8.0) or rough_lead_speed > 0.1:
+          if CS.lead_distance > (self.stopped_lead_distance + 8.0) or self.rough_lead_speed > 0.1:
             self.stopped_lead_distance = 0.0
             can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.RES_ACCEL, 0, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
             print("spamming")
-          print(self.stopped_lead_distance, CS.lead_distance, rough_lead_speed)
+          print(self.stopped_lead_distance, CS.lead_distance, self.rough_lead_speed)
         else:
           can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.RES_ACCEL, 0, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
       else:
         self.stopped_lead_distance = CS.lead_distance
-        self.prev_lead_distance = CS.lead_distance
+        #this gets set in rough speed
+        #self.prev_lead_distance = CS.lead_distance
     else:
       # Send gas and brake commands.
       if (frame % 2) == 0:
