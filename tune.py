@@ -233,9 +233,6 @@ while True:
   if float(kegman.conf['3barHwy']) > 2:
     kegman.conf['3barHwy'] = "2"  
 
-  if float(kegman.conf['sR_boost']) < 0:
-    kegman.conf['sR_boost'] = "0"
-
   if float(kegman.conf['sR_BP0']) < 0:
     kegman.conf['sR_BP0'] = "0"
 
