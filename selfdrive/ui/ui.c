@@ -179,7 +179,7 @@ typedef struct UIScene {
   //BB CPU TEMP
   uint16_t maxCpuTemp;
   uint32_t maxBatTemp;
-  //float gpsAccuracy;
+  float gpsAccuracy;
   float freeSpace;
   float angleSteers;
   float angleSteersDes;
@@ -250,7 +250,7 @@ typedef struct UIState {
   void *livempc_sock_raw;
   void *plus_sock_raw;
   void *map_data_sock_raw;
-  //void *gps_sock_raw;
+  void *gps_sock_raw;
   void *carstate_sock_raw;
 
   void *uilayout_sock_raw;
@@ -535,7 +535,7 @@ static void ui_init(UIState *s) {
   s->radarstate_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8012");
   s->livempc_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8035");
   s->plus_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8037");
-  //s->gps_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8032");
+  s->gps_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8032");
   s->carstate_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8021");
 
 #ifdef SHOW_SPEEDLIMIT
@@ -681,7 +681,7 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
       .front_box_width = ui_info.front_box_width,
       .front_box_height = ui_info.front_box_height,
       .world_objects_visible = false,  // Invisible until we receive a calibration message.
-      //.gps_planner_active = false,
+      .gps_planner_active = false,
   };
 
   s->rgb_width = back_bufs.width;
@@ -1217,7 +1217,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
   }
 
   //add grey panda GPS accuracy
-  /*if (true) {
+  if (true) {
     char val_str[16];
     char uom_str[3];
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
@@ -1237,7 +1237,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
         val_color, lab_color, uom_color,
         value_fontSize, label_fontSize, uom_fontSize );
     bb_ry = bb_y + bb_h;
-  }*/
+  }
 
   //add free space - from bthaler1
   if (true) {
@@ -2147,7 +2147,7 @@ void handle_message(UIState *s, void *which) {
     s->scene.curvature = datad.curvature;
     s->scene.engaged = datad.enabled;
     s->scene.engageable = datad.engageable;
-    //s->scene.gps_planner_active = datad.gpsPlannerActive;
+    s->scene.gps_planner_active = datad.gpsPlannerActive;
     s->scene.monitoring_active = datad.driverMonitoringOn;
     s->scene.output_scale = pdata.output;
 
@@ -2512,10 +2512,10 @@ static void ui_update(UIState *s) {
       plus_sock_num++;
       polls[7].socket = s->carstate_sock_raw;
       polls[7].events = ZMQ_POLLIN;
-      /*num_polls++;
+      num_polls++;
       plus_sock_num++;
       polls[9].socket = s->gps_sock_raw;
-      polls[9].events = ZMQ_POLLIN;*/
+      polls[9].events = ZMQ_POLLIN;
     }
 
     polls[plus_sock_num].socket = s->plus_sock_raw; // plus_sock should be last
@@ -2532,12 +2532,12 @@ static void ui_update(UIState *s) {
 
     if (polls[0].revents || polls[1].revents || polls[2].revents ||
         polls[3].revents || polls[4].revents || polls[6].revents ||
-        polls[7].revents || polls[plus_sock_num].revents) {  //} || polls[9].revents) {
+        polls[7].revents || polls[9].revents || polls[plus_sock_num].revents) {  //} || polls[9].revents) {
       // awake on any (old) activity
       set_awake(s, true);
     }
 
-    /*if (polls[9].revents) {
+    if (polls[9].revents) {
       // gps socket
 
       zmq_msg_t msg;
@@ -2568,7 +2568,7 @@ static void ui_update(UIState *s) {
         s->scene.gpsAccuracy = 99.8;
       }
       zmq_msg_close(&msg);
-    }*/
+    }
 
     if (polls[plus_sock_num].revents) {
       // plus socket
