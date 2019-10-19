@@ -26,7 +26,7 @@ const int HONDA_MAX_RT_DELTA = 1024;       // max delta torque allowed for real 
 // packet is sent at 100hz, so this limit is 2700/sec
 const int HONDA_MAX_RATE_UP = 27;          // ramp up slow (0.66 of max per sec)
 const int HONDA_MAX_RATE_DOWN = 68;        // ramp down fast (1.66 of max per sec)
-const int HONDA_DRIVER_TORQUE_ALLOWANCE = 1200; // TODO: some vehicles have a lower max
+const int HONDA_DRIVER_TORQUE_ALLOWANCE = 1600; // TODO: some vehicles have a lower max
 const int HONDA_DRIVER_TORQUE_FACTOR = 1;
 
 int honda_rt_torque_last = 0;
