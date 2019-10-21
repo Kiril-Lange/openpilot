@@ -41,7 +41,7 @@ button_delay = 0.2
 kegman = kegman_conf()
 kegman.conf['tuneGernby'] = "1"
 #kegman.write_config(kegman.conf)
-param = ["Kp", "Ki", "Kf", "steerRatio", "steerRateCost", "deadzone"]#, \
+param = ["Kp", "Ki", "Kf", "steerRatio", "steerRateCost", "deadzone", "lane_hug_angle", "lane_hug_mod"]#, \
          #"1barBP0", "1barBP1", "1barMax", "2barBP0", "2barBP1", \
          #"2barMax", "3barBP0", "3barBP1", "3barMax", \
          #"1barHwy", "2barHwy", "3barHwy"]
@@ -53,14 +53,22 @@ while True:
   print ("")
   print (print_letters(kegman.conf[param[j]]))
   print ("")
-  print ("1,3,5,7,r to incr 0.1,0.05,0.01,0.001,0.00001")
-  print ("a,d,g,j,v to decr 0.1,0.05,0.01,0.001,0.00001")
+  print ("o,1,3,5,7,r to incr 1.0,0.1,0.05,0.01,0.001,0.00001")
+  print ("p,a,d,g,j,v to decr 1.0,0.1,0.05,0.01,0.001,0.00001")
   print ("0 / L to make the value 0 / 1")
   print ("press SPACE / m for next /prev parameter")
   print ("press z to quit")
 
   char  = getch()
   write_json = False
+  if (char == "o"):
+    kegman.conf[param[j]] = str(round(int(kegman.conf[param[j]]) + 1, 1))
+    write_json = True
+
+  if (char == "p"):
+    kegman.conf[param[j]] = str(round(int(kegman.conf[param[j]]) - 1, 1))
+    write_json = True
+
   if (char == "v"):
     kegman.conf[param[j]] = str(round(float(kegman.conf[param[j]]) - 0.00001, 5))
     write_json = True
@@ -125,6 +133,18 @@ while True:
     sys.exit()
     break
 
+
+  if float(kegman.conf['lane_hug_mod']) < 1:
+    kegman.conf['lane_hug_mod'] = "1"
+
+  if float(kegman.conf['lane_hug_mod']) > 2:
+    kegman.conf['lane_hug_mod'] = "2"
+
+  if int(kegman.conf['lane_hug_angle']) > 10:
+    kegman.conf['lane_hug_angle'] = "10"
+
+  if int(kegman.conf['lane_hug_angle']) < 0:
+    kegman.conf['lane_hug_angle'] = "0"
 
   if float(kegman.conf['tuneGernby']) != 1 and float(kegman.conf['tuneGernby']) != 0:
     kegman.conf['tuneGernby'] = "1"
