@@ -63,11 +63,10 @@ class PathPlanner():
     
 
   def update(self, sm, pm, CP, VM):
-    
+    kegman = kegman_conf()
     self.mpc_frame += 1
     if self.mpc_frame % 300 == 0:
       # live tuning through /data/openpilot/tune.py overrides interface.py settings
-      kegman = kegman_conf()
       if kegman.conf['tuneGernby'] == "1":
         self.steerRatio = float(kegman.conf['steerRatio'])
         self.steerRateCost = float(kegman.conf['steerRateCost'])
@@ -94,7 +93,7 @@ class PathPlanner():
     else:
       curvfac = 0.
 
-    if active and kegman.conf['zorro_mod'] == "1":
+    if active and kegman.conf['zorro_mod'] == "1" and (v_ego > 18):
       curvature_factor = VM.curvature_factor(v_ego) + curvfac
     else:
       curvature_factor = VM.curvature_factor(v_ego)
