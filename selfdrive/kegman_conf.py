@@ -9,8 +9,16 @@ class kegman_conf():
 
   def init_config(self, CP):
     write_conf = False
-    if self.conf['tuneGernby'] != "1":
+    if self.conf['tuneGernby'] != "1" or self.conf['tuneGernby'] != "0":
       self.conf['tuneGernby'] = str(1)
+      write_conf = True
+
+    if self.conf['zorro_mod'] != "1" or self.conf['zorro_mod'] != "0":
+      self.conf['zorro_mod'] = str(1)
+      write_conf = True
+
+    if self.conf['shane_mod'] != "1" or self.conf['shane_mod'] != "0":
+      self.conf['zorro_mod'] = str(1)
       write_conf = True
 	
     # only fetch Kp, Ki, Kf sR and sRC from interface.py if it's a PID controlled car
@@ -53,6 +61,14 @@ class kegman_conf():
         self.config.update({"tuneGernby":"1"})
         self.config.update({"Kp":"-1"})
         self.config.update({"Ki":"-1"})
+        self.element_updated = True
+
+      if "zorro_mod" not in self.config:
+        self.config.update({"zorro_mod":"1"})
+        self.element_updated = True
+
+      if "shane_mod" not in self.config:
+        self.config.update({"shane_mod":"1"})
         self.element_updated = True
 
       if "liveParams" not in self.config:
@@ -120,7 +136,7 @@ class kegman_conf():
 		     "1barBP0":"-0.1", "1barBP1":"2.25", "2barBP0":"-0.1", "2barBP1":"2.5", "3barBP0":"0.0", \
 		     "3barBP1":"3.0", "1barMax":"2.1", "2barMax":"2.1", "3barMax":"2.1", \
 		     "1barHwy":"0.4", "2barHwy":"0.3", "3barHwy":"0.1", \
-         "steerRatio":"-1", "steerRateCost":"-1", "slowOnCurves":"0", "Kf":"-1", "lane_hug_direction":"None", "lane_hug_mod":"1.2", "lane_hug_angle":"10"}
+         "steerRatio":"-1", "steerRateCost":"-1", "slowOnCurves":"0", "Kf":"-1", "lane_hug_direction":"None", "lane_hug_mod":"1.2", "lane_hug_angle":"10", "zorro_mod":"1", "shane_mod":"1"}
 
       self.write_config(self.config)
     return self.config
