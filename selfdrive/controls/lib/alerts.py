@@ -646,6 +646,13 @@ ALERTS = [
       Priority.LOW, VisualAlert.none, AudibleAlert.chimeDisengage, .4, 2., 3.),
 
   Alert(
+      "invalidGiraffeToyotaNoEntry",
+      "openpilot Unavailable",
+      "Visit comma.ai/tg",
+      AlertStatus.normal, AlertSize.mid,
+      Priority.LOW, VisualAlert.none, AudibleAlert.chimeDisengage, .4, 2., 3.),
+
+  Alert(
       "commIssueNoEntry",
       "openpilot Unavailable",
       "Communication Issue between Processes",
