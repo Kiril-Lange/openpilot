@@ -81,6 +81,8 @@ For Bosch vehicles, the Eon will just simply shutdown as usual when battery fall
 
 
 - <b>Add @pjlao307's Dashcam Recording</b>:  Sometimes you just want to record a wicked OP run on a twisty highway to show your friends.  Sometimes you want to record a big flashing red error and complain about it and show your friends.  This does a screen video capture of the Eon screen and stores the files in /sdcard/videos on your Eon when the REC button is pressed.  Thanks to @pjlao307 and @theantihero for submitting the PR.
+In addition, we run [Pylint](https://www.pylint.org/) and [Flake8](https://github.com/PyCQA/flake8) linters on all python files within the panda repo.
+
 
 - <b>Stop logging when space hits 18% free space</b>:  Thanks to @emmertex for this easy fix to stop the Eon from filling up while driving when free space is low.
 
