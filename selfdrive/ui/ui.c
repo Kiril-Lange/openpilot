@@ -24,10 +24,7 @@
 #include "common/util.h"
 #include "common/swaglog.h"
 #include "common/mat.h"
-
-extern "C"{
 #include "common/glutil.h"
-}
 
 #include "common/touch.h"
 #include "common/framebuffer.h"
@@ -37,12 +34,9 @@ extern "C"{
 #include "common/params.h"
 
 #include "cereal/gen/c/log.capnp.h"
-
-extern "C"{
 #include "slplay.h"
-}
 
-#include "messaging.hpp"
+#include "devicestate.c"
 
 #include "devicestate.c"
 
@@ -288,11 +282,11 @@ typedef struct UIState {
   GLint line_pos_loc, line_color_loc;
   GLint line_transform_loc;
 
-  int rgb_width, rgb_height, rgb_stride;
+  unsigned int rgb_width, rgb_height, rgb_stride;
   size_t rgb_buf_len;
   mat4 rgb_transform;
 
-  int rgb_front_width, rgb_front_height, rgb_front_stride;
+  unsigned int rgb_front_width, rgb_front_height, rgb_front_stride;
   size_t rgb_front_buf_len;
 
   UIScene scene;
@@ -390,7 +384,7 @@ static void set_do_exit(int sig) {
   do_exit = 1;
 }
 
-static void read_param_bool(bool* param, const char* param_name) {
+static void read_param_bool(bool* param, char* param_name) {
   char *s;
   const int result = read_db_value(NULL, param_name, &s, NULL);
   if (result == 0) {
@@ -399,7 +393,7 @@ static void read_param_bool(bool* param, const char* param_name) {
   }
 }
 
-static void read_param_float(float* param, const char* param_name) {
+static void read_param_float(float* param, char* param_name) {
   char *s;
   const int result = read_db_value(NULL, param_name, &s, NULL);
   if (result == 0) {
@@ -408,7 +402,7 @@ static void read_param_float(float* param, const char* param_name) {
   }
 }
 
-static void read_param_bool_timeout(bool* param, const char* param_name, int* timeout) {
+static void read_param_bool_timeout(bool* param, char* param_name, int* timeout) {
   if (*timeout > 0){
     (*timeout)--;
   } else {
@@ -417,7 +411,7 @@ static void read_param_bool_timeout(bool* param, const char* param_name, int* ti
   }
 }
 
-static void read_param_float_timeout(float* param, const char* param_name, int* timeout) {
+static void read_param_float_timeout(float* param, char* param_name, int* timeout) {
   if (*timeout > 0){
     (*timeout)--;
   } else {
@@ -551,8 +545,7 @@ static void ui_init(UIState *s) {
                              });
 
 #ifdef SHOW_SPEEDLIMIT
-  s->map_data_sock = SubSock::create(s->ctx, "liveMapData");
-  s->poller.registerSocket(s->map_data_sock);
+  s->map_data_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8065");
 #endif
 
   s->ipc_fd = -1;
@@ -708,10 +701,10 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
   s->rgb_front_buf_len = front_bufs.buf_len;
 
   s->rgb_transform = (mat4){{
-    2.0f/s->rgb_width, 0.0f, 0.0f, -1.0f,
-    0.0f, 2.0f/s->rgb_height, 0.0f, -1.0f,
-    0.0f, 0.0f, 1.0f, 0.0f,
-    0.0f, 0.0f, 0.0f, 1.0f,
+    2.0/s->rgb_width, 0.0, 0.0, -1.0,
+    0.0, 2.0/s->rgb_height, 0.0, -1.0,
+    0.0, 0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0, 1.0,
   }};
 
   read_param_float(&s->speed_lim_off, "SpeedLimitOffset");
@@ -874,8 +867,8 @@ static void update_track_data(UIState *s, bool is_mpc, track_vertices_data *pvd)
   bool started = false;
   float off = is_mpc?0.3:0.5;
   float lead_d = scene->lead_d_rel*2.;
-  float path_height = is_mpc?(lead_d>5.)?fmin(lead_d, 25.)-fmin(lead_d*0.35, 10.):20.
-                            :(lead_d>0.)?fmin(lead_d, 50.)-fmin(lead_d*0.35, 10.):49.;
+  float path_height = is_mpc?(lead_d>5.)?min(lead_d, 25.)-min(lead_d*0.35, 10.):20.
+                            :(lead_d>0.)?min(lead_d, 50.)-min(lead_d*0.35, 10.):49.;
   pvd->cnt = 0;
   // left side up
   for (int i=0; i<=path_height; i++) {
@@ -949,8 +942,8 @@ const UIScene *scene = &s->scene;
   bool started = false;
   float off = is_mpc?0.3:0.5;
   float lead_d = scene->lead_d_rel*2.;
-  float path_height = is_mpc?(lead_d>5.)?fmin(lead_d, 25.)-fmin(lead_d*0.35, 10.):20.
-                            :(lead_d>0.)?fmin(lead_d, 50.)-fmin(lead_d*0.35, 10.):49.;
+  float path_height = is_mpc?(lead_d>5.)?min(lead_d, 25.)-min(lead_d*0.35, 10.):20.
+                            :(lead_d>0.)?min(lead_d, 50.)-min(lead_d*0.35, 10.):49.;
   int vi = 0;
   for(int i = 0;i < pvd->cnt;i++) {
     if (pvd->v[i].x < 0 || pvd->v[i].y < 0) {
@@ -1064,14 +1057,14 @@ static void update_lane_line_data(UIState *s, const float *points, float off, bo
 
 static void update_all_lane_lines_data(UIState *s, const PathData path, model_path_vertices_data *pstart) {
   update_lane_line_data(s, path.points, 0.025*path.prob, false, pstart);
-  float var = fmin(path.std, 0.7);
+  float var = min(path.std, 0.7);
   update_lane_line_data(s, path.points, -var, true, pstart + 1);
   update_lane_line_data(s, path.points, var, true, pstart + 2);
 }
 
 static void ui_draw_lane(UIState *s, const PathData *path, model_path_vertices_data *pstart, NVGcolor color) {
   ui_draw_lane_line(s, pstart, color);
-  float var = fmin(path->std, 0.7);
+  float var = min(path->std, 0.7);
   color.a /= 4;
   ui_draw_lane_line(s, pstart + 1, color);
   ui_draw_lane_line(s, pstart + 2, color);
@@ -1131,7 +1124,7 @@ static void ui_draw_world(UIState *s) {
       if (scene->lead_v_rel < 0) {
         fillAlpha += 255*(-1*(scene->lead_v_rel/speedBuff));
       }
-      fillAlpha = (int)(fmin(fillAlpha, 255));
+      fillAlpha = (int)(min(fillAlpha, 255));
     }
     draw_chevron(s, scene->lead_d_rel+2.7, scene->lead_y_rel, 25,
                   nvgRGBA(201, 34, 49, fillAlpha), nvgRGBA(255, 255, 255, 255));
@@ -1230,7 +1223,8 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
   }
 
   //add grey panda GPS accuracy
-  if (true) {
+  /*if (true) {
+>>>>>>> 1cd75335... Dev UI - working:selfdrive/ui/ui.c
     char val_str[16];
     char uom_str[3];
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
@@ -1250,7 +1244,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
         val_color, lab_color, uom_color,
         value_fontSize, label_fontSize, uom_fontSize );
     bb_ry = bb_y + bb_h;
-  }
+  }*/
 
   //add free space - from bthaler1
   if (true) {
@@ -2125,9 +2119,16 @@ static void update_status(UIState *s, int status) {
 }
 
 
-void handle_message(UIState *s, Message * msg) {
+void handle_message(UIState *s, void *which) {
+  int err;
+  zmq_msg_t msg;
+  err = zmq_msg_init(&msg);
+  assert(err == 0);
+  err = zmq_msg_recv(&msg, which, 0);
+  assert(err >= 0);
+
   struct capn ctx;
-  capn_init_mem(&ctx, (uint8_t*)msg->getData(), msg->getSize(), 0);
+  capn_init_mem(&ctx, zmq_msg_data(&msg), zmq_msg_size(&msg), 0);
 
   cereal_Event_ptr eventp;
   eventp.p = capn_getp(capn_root(&ctx), 0, 1);
@@ -2356,6 +2357,7 @@ void handle_message(UIState *s, Message * msg) {
     s->scene.rightBlinker = datad.rightBlinker;
   }
   capn_free(&ctx);
+  zmq_msg_close(&msg);
 }
 
 static void ui_update(UIState *s) {
@@ -2432,7 +2434,7 @@ static void ui_update(UIState *s) {
     s->alert_blinked = false;
   }
 
-  zmq_pollitem_t polls[1] = {{0}};
+  zmq_pollitem_t polls[12] = {{0}};
   // Wait for next rgb image from visiond
   while(true) {
     assert(s->ipc_fd >= 0);
@@ -2493,35 +2495,114 @@ static void ui_update(UIState *s) {
   }
   // peek and consume all events in the zmq queue, then return.
   while(true) {
-    bool awake = false;
-    auto polls = s->poller->poll(0);
+    int plus_sock_num = 7;
+    int num_polls = 8;
 
-    if (polls.size() == 0)
-      return;
-      
-    for (auto sock : polls){
-      Message * msg = sock->receive();
+    polls[0].socket = s->controlsstate_sock_raw;
+    polls[0].events = ZMQ_POLLIN;
+    polls[1].socket = s->livecalibration_sock_raw;
+    polls[1].events = ZMQ_POLLIN;
+    polls[2].socket = s->model_sock_raw;
+    polls[2].events = ZMQ_POLLIN;
+    polls[3].socket = s->radarstate_sock_raw;
+    polls[3].events = ZMQ_POLLIN;
+    polls[4].socket = s->livempc_sock_raw;
+    polls[4].events = ZMQ_POLLIN;
+    polls[5].socket = s->thermal_sock_raw;
+    polls[5].events = ZMQ_POLLIN;
+    polls[6].socket = s->uilayout_sock_raw;
+    polls[6].events = ZMQ_POLLIN;
 
-      if (sock != s->thermal_sock){
-        awake = true;
-      }
 
-      if (sock == s->plus_sock){
-        s->plus_state = msg->getData()[0];
-      } else {
-        handle_message(s, msg);
-      }
-
-      delete msg;
+    if (s->vision_connected) {
+      num_polls++;
+      plus_sock_num++;
+      polls[7].socket = s->carstate_sock_raw;
+      polls[7].events = ZMQ_POLLIN;
+      /*num_polls++;
+      plus_sock_num++;
+      polls[9].socket = s->gps_sock_raw;
+      polls[9].events = ZMQ_POLLIN;*/
     }
 
-    if (awake){
+    polls[plus_sock_num].socket = s->plus_sock_raw; // plus_sock should be last
+    polls[plus_sock_num].events = ZMQ_POLLIN;
+
+    int ret = zmq_poll(polls, num_polls, 0);
+    if (ret < 0) {
+      LOGW("poll failed (%d)", ret);
+      return;
+    }
+    if (ret == 0) {
+      return;
+    }
+
+    if (polls[0].revents || polls[1].revents || polls[2].revents ||
+        polls[3].revents || polls[4].revents || polls[6].revents ||
+        polls[7].revents || polls[plus_sock_num].revents) {  //} || polls[9].revents) {
+      // awake on any (old) activity
       set_awake(s, true);
+    }
+
+    /*if (polls[9].revents) {
+      // gps socket
+
+      zmq_msg_t msg;
+      err = zmq_msg_init(&msg);
+      assert(err == 0);
+      err = zmq_msg_recv(&msg, s->gps_sock_raw, 0);
+      assert(err >= 0);
+
+      struct capn ctx;
+      capn_init_mem(&ctx, zmq_msg_data(&msg), zmq_msg_size(&msg), 0);
+
+      cereal_Event_ptr eventp;
+      eventp.p = capn_getp(capn_root(&ctx), 0, 1);
+      struct cereal_Event eventd;
+      cereal_read_Event(&eventd, eventp);
+
+      struct cereal_GpsLocationData datad;
+      cereal_read_GpsLocationData(&datad, eventd.gpsLocation);
+
+      s->scene.gpsAccuracy = datad.accuracy;
+
+      if (s->scene.gpsAccuracy > 100)
+      {
+        s->scene.gpsAccuracy = 99.99;
+      }
+      else if (s->scene.gpsAccuracy == 0)
+      {
+        s->scene.gpsAccuracy = 99.8;
+      }
+      zmq_msg_close(&msg);
+    }*/
+
+    if (polls[plus_sock_num].revents) {
+      // plus socket
+      zmq_msg_t msg;
+      err = zmq_msg_init(&msg);
+      assert(err == 0);
+      err = zmq_msg_recv(&msg, s->plus_sock_raw, 0);
+      assert(err >= 0);
+
+      assert(zmq_msg_size(&msg) == 1);
+
+      s->plus_state = ((char*)zmq_msg_data(&msg))[0];
+
+      zmq_msg_close(&msg);
+
+    } else {
+      // zmq messages
+      for (int i=0; i<num_polls - 1; i++) {
+        if (polls[i].revents) {
+          handle_message(s, polls[i].socket);
+        }
+      }
     }
   }
 }
 
-static int vision_subscribe(int fd, VisionPacket *rp, VisionStreamType type) {
+static int vision_subscribe(int fd, VisionPacket *rp, int type) {
   int err;
   LOGW("vision_subscribe type:%d", type);
 
@@ -2562,7 +2643,7 @@ static void* vision_connect_thread(void *args) {
   int err;
   set_thread_name("vision_connect");
 
-  UIState *s = (UIState*)args;
+  UIState *s = args;
   while (!do_exit) {
     usleep(100000);
     pthread_mutex_lock(&s->lock);
@@ -2600,7 +2681,7 @@ static void* light_sensor_thread(void *args) {
   int err;
   set_thread_name("light_sensor");
 
-  UIState *s = (UIState*)args;
+  UIState *s = args;
   s->light_sensor = 0.0;
 
   struct sensors_poll_device_t* device;
@@ -2645,7 +2726,7 @@ fail:
 
 
 static void* bg_thread(void* args) {
-  UIState *s = (UIState*)args;
+  UIState *s = args;
   set_thread_name("bg");
 
   EGLDisplay bg_display;
@@ -2682,7 +2763,7 @@ int is_leon() {
   #define MAXCHAR 1000
   FILE *fp;
   char str[MAXCHAR];
-  const char* filename = "/proc/cmdline";
+  char* filename = "/proc/cmdline";
 
   fp = fopen(filename, "r");
   if (fp == NULL){
@@ -2848,7 +2929,7 @@ int main(int argc, char* argv[]) {
     if (s->volume_timeout > 0) {
       s->volume_timeout--;
     } else {
-      int volume = fmin(MAX_VOLUME, MIN_VOLUME + s->scene.v_ego / 5);  // up one notch every 5 m/s
+      int volume = min(MAX_VOLUME, MIN_VOLUME + s->scene.v_ego / 5);  // up one notch every 5 m/s
       set_volume(s, volume);
     }
 
