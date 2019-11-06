@@ -13,6 +13,7 @@
 // #define DEBUG printf
 #define INFO printf
 
+
 bool MessageState::parse(uint64_t sec, uint16_t ts_, uint8_t * dat) {
   uint64_t dat_le = read_u64_le(dat);
   uint64_t dat_be = read_u64_be(dat);
@@ -114,6 +115,7 @@ CANParser::CANParser(int abus, const std::string& dbc_name,
     if (op.check_frequency > 0) {
       state.check_threshold = (1000000000ULL / op.check_frequency) * 10;
     }
+
 
     const Msg* msg = NULL;
     for (int i=0; i<dbc->num_msgs; i++) {

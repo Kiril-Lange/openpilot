@@ -149,8 +149,6 @@ def thermald_thread():
   # prevent LEECO from undervoltage
   BATT_PERC_OFF = BATT_PERC_OFF = int(kegman.conf['battPercOff'])
   
-  BATT_PERC_OFF = 10 if LEON else 3
-
   health_timeout = int(1000 * 2 * DT_TRML)  # 2x the expected health frequency
 
   # now loop

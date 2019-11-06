@@ -81,17 +81,17 @@ namespace {
         }
         auto sig = sig_it->second;
 
-        if (sig.type != SignalType::HONDA_COUNTER){
+        if ((sig.type != SignalType::HONDA_COUNTER) && (sig.type != SignalType::VOLKSWAGEN_COUNTER)) {
           WARN("COUNTER signal type not valid\n");
         }
 
         ret = set_value(ret, sig, counter);
       }
 
-      auto sig_it = signal_lookup.find(std::make_pair(address, "CHECKSUM"));
-      if (sig_it != signal_lookup.end()) {
-        auto sig = sig_it->second;
-        if (sig.type == SignalType::HONDA_CHECKSUM){
+      auto sig_it_checksum = signal_lookup.find(std::make_pair(address, "CHECKSUM"));
+      if (sig_it_checksum != signal_lookup.end()) {
+        auto sig = sig_it_checksum->second;
+        if (sig.type == SignalType::HONDA_CHECKSUM) {
           unsigned int chksm = honda_checksum(address, ret, message_lookup[address].size);
           ret = set_value(ret, sig, chksm);
         } else if (sig.type == SignalType::TOYOTA_CHECKSUM) {
