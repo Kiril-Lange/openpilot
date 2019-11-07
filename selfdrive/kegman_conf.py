@@ -14,7 +14,7 @@ class kegman_conf():
       write_conf = True
 
     if self.conf['zorro_mod'] != "1" or self.conf['zorro_mod'] != "0":
-      self.conf['zorro_mod'] = str(1)
+      self.conf['zorro_mod'] = str(0)
       write_conf = True
 
     if self.conf['shane_mod'] != "1" or self.conf['shane_mod'] != "0":
