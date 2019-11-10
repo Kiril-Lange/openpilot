@@ -93,10 +93,10 @@ class PathPlanner():
     else:
       curvfac = 0.
 
-    if active and kegman.conf['zorro_mod'] == "1" and (v_ego > 18):
-      curvature_factor = VM.curvature_factor(v_ego) + curvfac
-    else:
-      curvature_factor = VM.curvature_factor(v_ego)
+    #if active and kegman.conf['zorro_mod'] == "1" and (v_ego > 18):
+    #  curvature_factor = VM.curvature_factor(v_ego) + curvfac
+    #else:
+    curvature_factor = VM.curvature_factor(v_ego)
 
     # TODO: Check for active, override, and saturation
     # if active:
