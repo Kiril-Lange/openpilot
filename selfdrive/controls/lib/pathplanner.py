@@ -8,6 +8,7 @@ from selfdrive.controls.lib.lane_planner import LanePlanner
 import selfdrive.messaging as messaging
 from selfdrive.kegman_conf import kegman_conf
 from selfdrive.controls.lib.curvature_learner import CurvatureLearner
+from common.numpy_fast import interp
 
 LOG_MPC = os.environ.get('LOG_MPC', True)
 
@@ -29,6 +30,9 @@ class PathPlanner():
     self.curvature_offset = CurvatureLearner(debug=False)
     self.path_offset_i = 0.0
     self.mpc_frame = 0
+    self.sR_delay_counter = 0
+    self.steerRatio_new = 0.0
+    self.sR_time = 1
     
     kegman = kegman_conf(CP)
     if kegman.conf['steerRatio'] == "-1":
@@ -40,6 +44,9 @@ class PathPlanner():
       self.steerRateCost = CP.steerRateCost
     else:
       self.steerRateCost = float(kegman.conf['steerRateCost'])
+
+    self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost']))]
+    self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1'])]
 
     self.steerRateCost_prev = self.steerRateCost
     self.setup_mpc(self.steerRateCost)
@@ -63,20 +70,6 @@ class PathPlanner():
     
 
   def update(self, sm, pm, CP, VM):
-    kegman = kegman_conf()
-    self.mpc_frame += 1
-    if self.mpc_frame % 300 == 0:
-      # live tuning through /data/openpilot/tune.py overrides interface.py settings
-      if kegman.conf['tuneGernby'] == "1":
-        self.steerRatio = float(kegman.conf['steerRatio'])
-        self.steerRateCost = float(kegman.conf['steerRateCost'])
-        if self.steerRateCost != self.steerRateCost_prev:
-          self.setup_mpc(self.steerRateCost)
-          self.steerRateCost_prev = self.steerRateCost
-         
-      self.mpc_frame = 0  
-    
-    
     v_ego = sm['carState'].vEgo
     angle_steers = sm['carState'].steeringAngle
     active = sm['controlsState'].active
@@ -98,6 +91,38 @@ class PathPlanner():
     #else:
     curvature_factor = VM.curvature_factor(v_ego)
 
+    # Get steerRatio and steerRateCost from kegman.json every x seconds
+    self.mpc_frame += 1
+    if self.mpc_frame % 500 == 0:
+      # live tuning through /data/openpilot/tune.py overrides interface.py settings
+      kegman = kegman_conf()
+      if kegman.conf['tuneGernby'] == "1":
+        self.steerRateCost = float(kegman.conf['steerRateCost'])
+        if self.steerRateCost != self.steerRateCost_prev:
+          self.setup_mpc(self.steerRateCost)
+          self.steerRateCost_prev = self.steerRateCost
+
+        self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost']))]
+        self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1'])]
+        self.sR_time = int(float(kegman.conf['sR_time'])) * 100
+
+      self.mpc_frame = 0
+
+    if v_ego > 11.111:
+      # boost steerRatio by boost amount if desired steer angle is high
+      self.steerRatio_new = interp(abs(angle_steers), self.sRBP, self.sR)
+
+      self.sR_delay_counter += 1
+      if self.sR_delay_counter % self.sR_time != 0:
+        if self.steerRatio_new > self.steerRatio:
+          self.steerRatio = self.steerRatio_new
+      else:
+        self.steerRatio = self.steerRatio_new
+        self.sR_delay_counter = 0
+    else:
+      self.steerRatio = self.sR[0]
+
+    print("steerRatio = ", self.steerRatio)
     # TODO: Check for active, override, and saturation
     # if active:
     #   self.path_offset_i += self.LP.d_poly[3] / (60.0 * 20.0)

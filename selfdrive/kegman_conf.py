@@ -20,7 +20,7 @@ class kegman_conf():
     if self.conf['shane_mod'] != "1" or self.conf['shane_mod'] != "0":
       self.conf['zorro_mod'] = str(1)
       write_conf = True
-	
+
     # only fetch Kp, Ki, Kf sR and sRC from interface.py if it's a PID controlled car
     if CP.lateralTuning.which() == 'pid':
       if self.conf['Kp'] == "-1":
@@ -32,11 +32,11 @@ class kegman_conf():
       if self.conf['Kf'] == "-1":
         self.conf['Kf'] = str('{:f}'.format(CP.lateralTuning.pid.kf))
         write_conf = True
-    
+
     if self.conf['steerRatio'] == "-1":
       self.conf['steerRatio'] = str(round(CP.steerRatio,3))
       write_conf = True
-    
+
     if self.conf['steerRateCost'] == "-1":
       self.conf['steerRateCost'] = str(round(CP.steerRateCost,3))
       write_conf = True
@@ -74,12 +74,12 @@ class kegman_conf():
       if "liveParams" not in self.config:
         self.config.update({"liveParams":"1"})
         self.element_updated = True
-	
+
       if "steerRatio" not in self.config:
         self.config.update({"steerRatio":"-1"})
         self.config.update({"steerRateCost":"-1"})
         self.element_updated = True
-	
+
       if "leadDistance" not in self.config:
         self.config.update({"leadDistance":"5"})
         self.element_updated = True
@@ -93,7 +93,7 @@ class kegman_conf():
       if "deadzone" not in self.config:
         self.config.update({"deadzone":"0.0"})
         self.element_updated = True
-	
+
       if "1barBP0" not in self.config:
         self.config.update({"1barBP0":"-0.1"})
         self.config.update({"1barBP1":"2.25"})
@@ -109,19 +109,26 @@ class kegman_conf():
         self.config.update({"2barMax":"2.1"})
         self.config.update({"3barMax":"2.1"})
         self.element_updated = True
-	
+
       if "1barHwy" not in self.config:
         self.config.update({"1barHwy":"0.4"})
         self.config.update({"2barHwy":"0.3"})
         self.config.update({"3barHwy":"0.1"})
         self.element_updated = True
-	
+
       if "slowOnCurves" not in self.config:
         self.config.update({"slowOnCurves":"0"})
         self.element_updated = True
-	
+
       if "Kf" not in self.config:
         self.config.update({"Kf":"-1"})
+        self.element_updated = True
+
+      if "sR_boost" not in self.config:
+        self.config.update({"sR_boost":"0"})
+        self.config.update({"sR_BP0":"0"})
+        self.config.update({"sR_BP1":"0"})
+        self.config.update({"sR_time":"1"})
         self.element_updated = True
 
       if self.element_updated:
@@ -136,7 +143,8 @@ class kegman_conf():
 		     "1barBP0":"-0.1", "1barBP1":"2.25", "2barBP0":"-0.1", "2barBP1":"2.5", "3barBP0":"0.0", \
 		     "3barBP1":"3.0", "1barMax":"2.1", "2barMax":"2.1", "3barMax":"2.1", \
 		     "1barHwy":"0.4", "2barHwy":"0.3", "3barHwy":"0.1", \
-         "steerRatio":"-1", "steerRateCost":"-1", "slowOnCurves":"0", "Kf":"-1", "lane_hug_direction":"None", "lane_hug_mod":"1.2", "lane_hug_angle":"10", "zorro_mod":"1", "shane_mod":"1"}
+         "steerRatio":"-1", "steerRateCost":"-1", "slowOnCurves":"0", "Kf":"-1", "lane_hug_direction":"None", "lane_hug_mod":"1.2", "lane_hug_angle":"10", "zorro_mod":"1", "shane_mod":"1", \
+                     "sR_boost": "4.5", "sR_BP0": "3.5", "sR_BP1": "10", "sR_time": "1.5"}
 
       self.write_config(self.config)
     return self.config
