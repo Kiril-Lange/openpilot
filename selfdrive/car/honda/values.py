@@ -9,6 +9,14 @@ class CruiseButtons:
   DECEL_SET   = 3
   CANCEL      = 2
   MAIN        = 1
+  RESET       = 0
+
+# Car button codes
+class CruiseSettings:
+  LEAD_DISTANCE   = 3
+  BUTTON_TWO      = 2
+  BUTTON_ONE      = 1
+  RESET           = 0
 
 class AH:
   #[alert_idx, value]

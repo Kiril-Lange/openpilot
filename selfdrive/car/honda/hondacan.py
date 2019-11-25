@@ -109,10 +109,10 @@ def create_ui_commands(packer, pcm_speed, hud, car_fingerprint, is_metric, idx, 
   return commands
 
 
-def spam_buttons_command(packer, button_val, idx, car_fingerprint, has_relay):
+def spam_buttons_command(packer, button_val, setting_val, idx, car_fingerprint, has_relay):
   values = {
     'CRUISE_BUTTONS': button_val,
-    'CRUISE_SETTING': 0,
+    'CRUISE_SETTING': setting_val,
   }
   bus = get_pt_bus(car_fingerprint, has_relay)
   return packer.make_can_msg("SCM_BUTTONS", bus, values, idx)

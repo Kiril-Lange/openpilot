@@ -131,6 +131,10 @@ class kegman_conf():
         self.config.update({"sR_time":"1"})
         self.element_updated = True
 
+      if "simpledd" not in self.config:
+        self.config.update({"simpledd":False})
+        self.element_updated = True
+
       if self.element_updated:
         print("updated")
         self.write_config(self.config)
@@ -144,7 +148,7 @@ class kegman_conf():
 		     "3barBP1":"3.0", "1barMax":"2.1", "2barMax":"2.1", "3barMax":"2.1", \
 		     "1barHwy":"0.4", "2barHwy":"0.3", "3barHwy":"0.1", \
          "steerRatio":"-1", "steerRateCost":"-1", "slowOnCurves":"0", "Kf":"-1", "lane_hug_direction":"None", "lane_hug_mod":"1.2", "lane_hug_angle":"10", "zorro_mod":"1", "shane_mod":"1", \
-                     "sR_boost": "4.5", "sR_BP0": "3.5", "sR_BP1": "10", "sR_time": "1.5"}
+                     "sR_boost": "4.5", "sR_BP0": "3.5", "sR_BP1": "10", "sR_time": "1.5", "simpledd":False}
 
       self.write_config(self.config)
     return self.config
