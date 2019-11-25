@@ -253,10 +253,10 @@ class CarController():
       can_sends.extend(hondacan.create_ui_commands(self.packer, pcm_speed, hud, CS.CP.carFingerprint, CS.is_metric, idx, CS.CP.isPandaBlack))
 
     if CS.CP.carFingerprint in (CAR.INSIGHT):
-      self.rough_speed(CS.leadDistance)
+      self.rough_speed(CS.lead_distance)
       if kegman.conf['simpledd'] == True:
         #Get the desiredTR before using it.
-        self.get_TR(CS.leadDistance, CS.v_ego, CS.stopped)
+        self.get_TR(CS.lead_distance, CS.v_ego, CS.stopped)
         # update to CS so we can push it to ui through cereal
         CS.desiredTR = self.desiredTR
         if frame % 13 < 2 and CS.hud_distance != (self.desiredTR % 4):
