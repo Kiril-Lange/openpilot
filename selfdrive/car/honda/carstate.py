@@ -119,7 +119,8 @@ def get_can_signals(CP):
 
   if CP.carFingerprint in (CAR.ACCORD, CAR.ACCORD_15, CAR.ACCORDH, CAR.INSIGHT):
     signals += [("DRIVERS_DOOR_OPEN", "SCM_FEEDBACK", 1),
-                ("LEAD_DISTANCE", "RADAR_HUD", 0)]
+                ("LEAD_DISTANCE", "RADAR_HUD", 0),
+                ("HUD_DISTANCE", "ACC_HUD", 0)]
     checks += [("RADAR_HUD", 50)]
   elif CP.carFingerprint in (CAR.CIVIC_BOSCH, CAR.CRV_HYBRID):
     signals += [("DRIVERS_DOOR_OPEN", "SCM_FEEDBACK", 1)]
@@ -202,6 +203,7 @@ class CarState():
     self.brake_switch_prev = 0
     self.brake_switch_ts = 0
     self.lead_distance = 255
+    self.hud_distance = 0
     self.hud_lead = 0
 
     self.cruise_buttons = 0
@@ -246,6 +248,7 @@ class CarState():
       self.standstill = cp.vl["ENGINE_DATA"]['XMISSION_SPEED'] < 0.1
       self.door_all_closed = not cp.vl["SCM_FEEDBACK"]['DRIVERS_DOOR_OPEN']
       self.lead_distance = cp.vl["RADAR_HUD"]['LEAD_DISTANCE']
+      self.hud_distance = cp.vl['ACC_HUD']['HUD_DISTANCE']
     elif self.CP.carFingerprint in (CAR.CIVIC_BOSCH, CAR.CRV_HYBRID):
       self.standstill = cp.vl["ENGINE_DATA"]['XMISSION_SPEED'] < 0.1
       self.door_all_closed = not cp.vl["SCM_FEEDBACK"]['DRIVERS_DOOR_OPEN']
@@ -339,6 +342,7 @@ class CarState():
     if self.CP.radarOffCan:
       self.cruise_mode = cp.vl["ACC_HUD"]['CRUISE_CONTROL_LABEL']
       self.stopped = cp.vl["ACC_HUD"]['CRUISE_SPEED'] == 252.
+      self.hud_distance = cp.vl["ACC_HUD"]["HUD_DISTANCE"]
       self.cruise_speed_offset = calc_cruise_offset(0, self.v_ego)
       if self.CP.carFingerprint in (CAR.CIVIC_BOSCH, CAR.ACCORDH, CAR.INSIGHT, CAR.CRV_HYBRID):
         self.brake_switch = cp.vl["POWERTRAIN_DATA"]['BRAKE_SWITCH']
