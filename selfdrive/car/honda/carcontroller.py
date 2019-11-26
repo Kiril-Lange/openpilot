@@ -11,10 +11,6 @@ from selfdrive.kegman_conf import kegman_conf
 
 kegman = kegman_conf()
 
-
-
-
-
 def actuator_hystereses(brake, braking, brake_steady, v_ego, car_fingerprint):
   # hyst params
   brake_hyst_on = 0.02     # to activate brakes exceed this value
