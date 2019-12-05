@@ -37,7 +37,7 @@ class LatControlPID():
       self.mpc_frame = 0    
 
       
-  def update(self, active, v_ego, angle_steers, angle_steers_rate, eps_torque, steer_override, CP, path_plan):
+  def update(self, active, v_ego, angle_steers, angle_steers_rate, steer_override, CP, path_plan):
     self.live_tune(CP)
     
     pid_log = log.ControlsState.LateralPIDState.new_message()
