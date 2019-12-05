@@ -38,8 +38,7 @@ class LatControlPID():
 
       
   def update(self, active, v_ego, angle_steers, angle_steers_rate, eps_torque, steer_override, CP, path_plan):
-    kegman = kegman_conf()
-    #self.live_tune(CP)
+    self.live_tune(CP)
     
     pid_log = log.ControlsState.LateralPIDState.new_message()
     pid_log.steerAngle = float(angle_steers)
@@ -50,9 +49,6 @@ class LatControlPID():
       pid_log.active = False
       self.pid.reset()
     else:
-     # if kegman.conf['shane_mod'] == "1":
-     #   self.angle_steers_des = self.lane_hugging.init(path_plan.angleSteers)  # get from MPC/PathPlanner and initialize lane hugging mod 
-     # else:
       self.angle_steers_des = path_plan.angleSteers # get from MPC/PathPlanner
 
       steers_max = get_steer_max(CP, v_ego)

@@ -250,7 +250,7 @@ class CarController():
 
     if CS.CP.carFingerprint in (CAR.INSIGHT):
       self.rough_speed(CS.lead_distance)
-      if kegman.conf['simpledd'] == True:
+      if kegman.conf['simpledd'] == "1":
         #Get the desiredTR before using it.
         self.get_TR(CS.lead_distance, CS.v_ego, CS.stopped)
         # update to CS so we can push it to ui through cereal
