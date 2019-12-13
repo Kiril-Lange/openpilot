@@ -70,6 +70,7 @@ Everything inbetween -0.25 m/s and 3 m/s is interpolated, which adjusts the dist
 
 - <b>(Not functional in 0.6.x yet) Toggle Comma's live tuning</b>:  Comma live tunes things like alignment, steerRatio etc.  But sometimes it doesn't converge to the right value and throws lane centering off during turns.  This allows you to use /data/openpilot/.tune.sh to toggle the auto-tune to off when the car feels right so that it doesn't tune the car any further than necessary.
 
+
 - <b>Highway speed braking profiles</b>:  Added highway braking profiles so that you won't follow so closely at speeds > 70 kph.  This affects kegman-0.5.8-gold, kegman-0.5.11, kegman-plusGernbySteering-0.5.11, kegman-0.12, kegman-0.13-stockUI, kegman-0.6 kegman-plusGernbySteering-0.6 branches only.
   
 - <b>Live tuner for Kp and Ki</b>:  Tune your Kp and Ki values live using your cell phone by SSHing into the Eon and executing cd /data/openpilot && ./tune.sh
