@@ -7,7 +7,14 @@ arch = subprocess.check_output(["uname", "-m"], encoding='utf8').rstrip()
 cereal_dir = Dir('.')
 
 cpppath = [
+<<<<<<< HEAD
     cereal_dir,
+=======
+    '#',
+    '#cereal',
+    "#cereal/messaging",
+    "#opendbc/can",
+>>>>>>> 683b6151... Squashed 'opendbc/' changes from c0eba096..4f82d01e
     '/usr/lib/include',
 ]
 
@@ -44,6 +51,17 @@ env = Environment(
   CPPPATH=cpppath,
 )
 
+<<<<<<< HEAD
 
 Export('env', 'zmq', 'arch')
 SConscript(['SConscript'])
+=======
+Export('env', 'zmq', 'arch')
+
+cereal = [File('#cereal/libcereal.a')]
+messaging = [File('#cereal/libmessaging.a')]
+Export('cereal', 'messaging')
+
+SConscript(['cereal/SConscript'])
+SConscript(['opendbc/can/SConscript'])
+>>>>>>> 683b6151... Squashed 'opendbc/' changes from c0eba096..4f82d01e

@@ -2,6 +2,7 @@ pr: none
 
 pool:
   vmImage: 'ubuntu-16.04'
+<<<<<<< HEAD
 
 steps:
 - script: |
@@ -12,3 +13,17 @@ steps:
     docker run cereal bash -c "MSGQ=1 python -m unittest discover ."
 
   displayName: 'Run Tests'
+=======
+steps:
+- script: |
+    set -e
+    docker build -t opendbc .
+  displayName: 'Build'
+- script: |
+    docker run opendbc bash -c "python -m unittest discover opendbc"
+  displayName: 'Unit tests'
+- script: |
+    docker run opendbc bash -c "cd opendbc/can/tests/linter_python; PYTHONPATH=/ ./flake8_opendbc.sh"
+    docker run opendbc bash -c "cd opendbc/can/tests/linter_python; PYTHONPATH=/ ./pylint_opendbc.sh"
+  displayName: 'Python linter'
+>>>>>>> 683b6151... Squashed 'opendbc/' changes from c0eba096..4f82d01e

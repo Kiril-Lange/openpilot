@@ -7,21 +7,19 @@ ENV PATH="/root/.pyenv/bin:/root/.pyenv/shims:${PATH}"
 RUN pyenv install 3.7.3
 RUN pyenv global 3.7.3
 RUN pyenv rehash
-RUN pip3 install pyyaml==5.1.2 Cython==0.29.14 scons==3.1.1 pycapnp==0.6.4
 
-WORKDIR /project/cereal
-COPY install_capnp.sh .
-RUN ./install_capnp.sh
+COPY requirements.txt /tmp/
+RUN pip install -r /tmp/requirements.txt
 
+ENV PYTHONPATH=/project
 
-COPY ./panda_jungle /tmp/panda_jungle
+# TODO: Add tag to cereal
+RUN git clone https://github.com/commaai/cereal.git /project/cereal
+RUN /project/cereal/install_capnp.sh
 
-RUN useradd --system -s /sbin/nologin pandauser
-RUN mkdir -p /tmp/panda/boardesp/esp-open-sdk
-RUN chown pandauser /tmp/panda/boardesp/esp-open-sdk
-USER pandauser
-RUN cd /tmp/panda/boardesp && ./get_sdk_ci.sh
-USER root
+WORKDIR /project
 
-COPY . .
+COPY SConstruct .
+COPY . /project/opendbc
+
 RUN scons -c && scons -j$(nproc)
