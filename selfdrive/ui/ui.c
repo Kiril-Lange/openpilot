@@ -50,11 +50,11 @@
 #define ALERTSIZE_MID 2
 #define ALERTSIZE_FULL 3
 
+//#define UI_60FPS
+
 #define UI_BUF_COUNT 4
 //#define SHOW_SPEEDLIMIT 1
 //#define DEBUG_TURN
-
-//#define DEBUG_FPS
 
 const int vwp_w = 1920;
 const int vwp_h = 1080;
@@ -129,7 +129,6 @@ typedef struct UIScene {
 
   int transformed_width, transformed_height;
 
-  uint64_t model_ts;
   ModelData model;
 
   float mpc_x[50];
@@ -251,10 +250,19 @@ typedef struct UIState {
   void *map_data_sock_raw;
   void *gps_sock_raw;
   void *carstate_sock_raw;
-
   void *uilayout_sock_raw;
+  
+  // Sockets
+  Context *ctx;
+  SubSocket *model_sock;
+  SubSocket *controlsstate_sock;
+  SubSocket *livecalibration_sock;
+  SubSocket *radarstate_sock;
+  SubSocket *map_data_sock;
+  SubSocket *uilayout_sock;
+  Poller * poller;
 
-  int plus_state;
+  int active_app;
 
   // vision state
   bool vision_connected;
@@ -371,7 +379,7 @@ static void set_awake(UIState *s, bool awake) {
 
 static void set_volume(UIState *s, int volume) {
   char volume_change_cmd[64];
-  sprintf(volume_change_cmd, "service call audio 3 i32 3 i32 %d i32 1", volume);
+  sprintf(volume_change_cmd, "service call audio 3 i32 3 i32 %d i32 1 &", volume);
 
   // 5 second timeout at 60fps
   s->volume_timeout = 5 * UI_FREQ;
@@ -524,21 +532,31 @@ static void ui_init(UIState *s) {
   pthread_mutex_init(&s->lock, NULL);
   pthread_cond_init(&s->bg_cond, NULL);
 
-  s->ctx = zmq_ctx_new();
+  s->ctx = Context::create();
+  s->model_sock = SubSocket::create(s->ctx, "model");
+  s->controlsstate_sock = SubSocket::create(s->ctx, "controlsState");
+  s->uilayout_sock = SubSocket::create(s->ctx, "uiLayoutState");
+  s->livecalibration_sock = SubSocket::create(s->ctx, "liveCalibration");
+  s->radarstate_sock = SubSocket::create(s->ctx, "radarState");
 
-  s->thermal_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8005");
-  s->model_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8009");
-  s->controlsstate_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8007");
-  s->uilayout_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8060");
-  s->livecalibration_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8019");
-  s->radarstate_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8012");
-  s->livempc_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8035");
-  s->plus_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8037");
-  s->gps_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8032");
-  s->carstate_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8021");
+  assert(s->model_sock != NULL);
+  assert(s->controlsstate_sock != NULL);
+  assert(s->uilayout_sock != NULL);
+  assert(s->livecalibration_sock != NULL);
+  assert(s->radarstate_sock != NULL);
+
+  s->poller = Poller::create({
+                              s->model_sock,
+                              s->controlsstate_sock,
+                              s->uilayout_sock,
+                              s->livecalibration_sock,
+                              s->radarstate_sock
+                             });
 
 #ifdef SHOW_SPEEDLIMIT
-  s->map_data_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8065");
+  s->map_data_sock = SubSock::create(s->ctx, "liveMapData");
+  assert(s->map_data_sock != NULL);
+  s->poller.registerSocket(s->map_data_sock);
 #endif
 
   s->ipc_fd = -1;
@@ -680,7 +698,7 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
       .front_box_width = ui_info.front_box_width,
       .front_box_height = ui_info.front_box_height,
       .world_objects_visible = false,  // Invisible until we receive a calibration message.
-      .gps_planner_active = true,
+      .gps_planner_active = false,
   };
 
   s->rgb_width = back_bufs.width;
@@ -1102,10 +1120,8 @@ static void ui_draw_world(UIState *s) {
     return;
   }
 
-  if ((nanos_since_boot() - scene->model_ts) < 1000000000ULL) {
-    // Draw lane edges and vision/mpc tracks
-    ui_draw_vision_lanes(s);
-  }
+  // Draw lane edges and vision/mpc tracks
+  ui_draw_vision_lanes(s);
 
   if (scene->lead_status) {
     // Draw lead car indicator
@@ -1216,27 +1232,27 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
   }
 
   //add grey panda GPS accuracy
-  if (true) {
-    char val_str[16];
-    char uom_str[3];
-    NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
+  //if (true) {
+  //  char val_str[16];
+  //  char uom_str[3];
+  //  NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
     //show red/orange if gps accuracy is high
-      if(scene->gpsAccuracy > 0.59) {
-         val_color = nvgRGBA(255, 188, 3, 200);
-      }
-      if(scene->gpsAccuracy > 0.8) {
-         val_color = nvgRGBA(255, 0, 0, 200);
-      }
+  //    if(scene->gpsAccuracy > 0.59) {
+  //       val_color = nvgRGBA(255, 188, 3, 200);
+  //    }
+  //    if(scene->gpsAccuracy > 0.8) {
+  //       val_color = nvgRGBA(255, 0, 0, 200);
+  //    }
 
     // gps accuracy is always in meters
-    snprintf(val_str, sizeof(val_str), "%.2f", (s->scene.gpsAccuracy));
-    snprintf(uom_str, sizeof(uom_str), "m");;
-    bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "GPS PREC",
-        bb_rx, bb_ry, bb_uom_dx,
-        val_color, lab_color, uom_color,
-        value_fontSize, label_fontSize, uom_fontSize );
-    bb_ry = bb_y + bb_h;
-  }
+  //  snprintf(val_str, sizeof(val_str), "%.2f", (s->scene.gpsAccuracy));
+  //  snprintf(uom_str, sizeof(uom_str), "m");;
+  //  bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "GPS PREC",
+  //      bb_rx, bb_ry, bb_uom_dx,
+  //      val_color, lab_color, uom_color,
+  //      value_fontSize, label_fontSize, uom_fontSize );
+  //  bb_ry = bb_y + bb_h;
+  //}
 
   //add free space - from bthaler1
   if (true) {
@@ -2041,7 +2057,7 @@ static void ui_draw_blank(UIState *s) {
 }
 
 static void ui_draw(UIState *s) {
-  if (s->vision_connected && s->plus_state == 0) {
+  if (s->vision_connected && s->active_app == cereal_UiLayoutState_App_home && s->status != STATUS_STOPPED) {
     ui_draw_vision(s);
   } else {
     ui_draw_blank(s);
@@ -2126,7 +2142,12 @@ void handle_message(UIState *s, void *which) {
   eventp.p = capn_getp(capn_root(&ctx), 0, 1);
   struct cereal_Event eventd;
   cereal_read_Event(&eventd, eventp);
-  double t = millis_since_boot();
+
+  // Skip messages from previous run
+  if (nanos_since_boot() - eventd.logMonoTime > 1e9) {
+    return;
+  }
+
   if (eventd.which == cereal_Event_controlsState) {
     struct cereal_ControlsState datad;
     cereal_read_ControlsState(&datad, eventd.controlsState);
@@ -2212,14 +2233,16 @@ void handle_message(UIState *s, void *which) {
       s->alert_size = ALERTSIZE_FULL;
     }
 
-    if (datad.alertStatus == cereal_ControlsState_AlertStatus_userPrompt) {
-      update_status(s, STATUS_WARNING);
-    } else if (datad.alertStatus == cereal_ControlsState_AlertStatus_critical) {
-      update_status(s, STATUS_ALERT);
-    } else if (datad.enabled) {
-      update_status(s, STATUS_ENGAGED);
-    } else {
-      update_status(s, STATUS_DISENGAGED);
+    if (s->status != STATUS_STOPPED) {
+      if (datad.alertStatus == cereal_ControlsState_AlertStatus_userPrompt) {
+        update_status(s, STATUS_WARNING);
+      } else if (datad.alertStatus == cereal_ControlsState_AlertStatus_critical) {
+        update_status(s, STATUS_ALERT);
+      } else if (datad.enabled) {
+        update_status(s, STATUS_ENGAGED);
+      } else {
+        update_status(s, STATUS_DISENGAGED);
+      }
     }
 
     s->scene.alert_blinkingrate = datad.alertBlinkingRate;
@@ -2268,7 +2291,6 @@ void handle_message(UIState *s, void *which) {
           capn_to_f32(capn_get32(extrinsicl, i));
     }
   } else if (eventd.which == cereal_Event_model) {
-    s->scene.model_ts = eventd.logMonoTime;
     s->scene.model = read_model(eventd.model);
     s->model_changed = true;
   } else if (eventd.which == cereal_Event_liveMpc) {
@@ -2321,6 +2343,7 @@ void handle_message(UIState *s, void *which) {
   } else if (eventd.which == cereal_Event_uiLayoutState) {
     struct cereal_UiLayoutState datad;
     cereal_read_UiLayoutState(&datad, eventd.uiLayoutState);
+    s->active_app = datad.activeApp;
     s->scene.uilayout_sidebarcollapsed = datad.sidebarCollapsed;
     s->scene.uilayout_mapenabled = datad.mapEnabled;
 
@@ -2426,21 +2449,31 @@ static void ui_update(UIState *s) {
     s->alert_blinked = false;
   }
 
-  zmq_pollitem_t polls[12] = {{0}};
-  // Wait for next rgb image from visiond
+  zmq_pollitem_t polls[1] = {{0}};
+  // Take an rgb image from visiond if there is one
   while(true) {
     assert(s->ipc_fd >= 0);
     polls[0].fd = s->ipc_fd;
     polls[0].events = ZMQ_POLLIN;
-    int ret = zmq_poll(polls, 1, 1000);
+    #ifdef UI_60FPS
+      // uses more CPU in both UI and surfaceflinger
+      // 16% / 21%
+      int ret = zmq_poll(polls, 1, 1);
+    #else
+      // 9% / 13% = a 14% savings
+      int ret = zmq_poll(polls, 1, 1000);
+    #endif
     if (ret < 0) {
+      if (errno == EINTR) continue;
+
       LOGW("poll failed (%d)", ret);
       close(s->ipc_fd);
       s->ipc_fd = -1;
       s->vision_connected = false;
       return;
-    } else if (ret == 0)
-      continue;
+    } else if (ret == 0) {
+      break;
+    }
     // vision ipc event
     VisionPacket rp;
     err = vipc_recv(s->ipc_fd, &rp);
@@ -2487,35 +2520,7 @@ static void ui_update(UIState *s) {
   }
   // peek and consume all events in the zmq queue, then return.
   while(true) {
-    int plus_sock_num = 7;
-    int num_polls = 8;
-
-    polls[0].socket = s->controlsstate_sock_raw;
-    polls[0].events = ZMQ_POLLIN;
-    polls[1].socket = s->livecalibration_sock_raw;
-    polls[1].events = ZMQ_POLLIN;
-    polls[2].socket = s->model_sock_raw;
-    polls[2].events = ZMQ_POLLIN;
-    polls[3].socket = s->radarstate_sock_raw;
-    polls[3].events = ZMQ_POLLIN;
-    polls[4].socket = s->livempc_sock_raw;
-    polls[4].events = ZMQ_POLLIN;
-    polls[5].socket = s->thermal_sock_raw;
-    polls[5].events = ZMQ_POLLIN;
-    polls[6].socket = s->uilayout_sock_raw;
-    polls[6].events = ZMQ_POLLIN;
-
-
-    if (s->vision_connected) {
-      num_polls++;
-      plus_sock_num++;
-      polls[7].socket = s->carstate_sock_raw;
-      polls[7].events = ZMQ_POLLIN;
-      num_polls++;
-      plus_sock_num++;
-      polls[8].socket = s->gps_sock_raw;
-      polls[8].events = ZMQ_POLLIN;
-    }
+    auto polls = s->poller->poll(0);
 
     polls[plus_sock_num].socket = s->plus_sock_raw; // plus_sock should be last
     polls[plus_sock_num].events = ZMQ_POLLIN;
@@ -2524,34 +2529,14 @@ static void ui_update(UIState *s) {
     if (ret < 0) {
       LOGW("poll failed (%d)", ret);
       return;
-    }
-    if (ret == 0) {
-      return;
-    }
 
-    if (polls[0].revents || polls[1].revents || polls[2].revents ||
-        polls[3].revents || polls[4].revents || polls[6].revents ||
-        polls[7].revents || polls[8].revents || polls[plus_sock_num].revents) {  //} || polls[9].revents) {
-      // awake on any (old) activity
+    for (auto sock : polls){
+      Message * msg = sock->receive();
+      if (msg == NULL) continue;
+
       set_awake(s, true);
-    }
 
-    if (polls[8].revents) {
-      // gps socket
-
-      zmq_msg_t msg;
-      err = zmq_msg_init(&msg);
-      assert(err == 0);
-      err = zmq_msg_recv(&msg, s->gps_sock_raw, 0);
-      assert(err >= 0);
-
-      struct capn ctx;
-      capn_init_mem(&ctx, zmq_msg_data(&msg), zmq_msg_size(&msg), 0);
-
-      cereal_Event_ptr eventp;
-      eventp.p = capn_getp(capn_root(&ctx), 0, 1);
-      struct cereal_Event eventd;
-      cereal_read_Event(&eventd, eventp);
+      handle_message(s, msg);
 
       struct cereal_GpsLocationData datad;
       cereal_read_GpsLocationData(&datad, eventd.gpsLocation);
@@ -2567,29 +2552,6 @@ static void ui_update(UIState *s) {
         s->scene.gpsAccuracy = 99.8;
       }
       zmq_msg_close(&msg);
-    }
-
-    if (polls[plus_sock_num].revents) {
-      // plus socket
-      zmq_msg_t msg;
-      err = zmq_msg_init(&msg);
-      assert(err == 0);
-      err = zmq_msg_recv(&msg, s->plus_sock_raw, 0);
-      assert(err >= 0);
-
-      assert(zmq_msg_size(&msg) == 1);
-
-      s->plus_state = ((char*)zmq_msg_data(&msg))[0];
-
-      zmq_msg_close(&msg);
-
-    } else {
-      // zmq messages
-      for (int i=0; i<num_polls - 1; i++) {
-        if (polls[i].revents) {
-          handle_message(s, polls[i].socket);
-        }
-      }
     }
   }
 }
@@ -2819,11 +2781,7 @@ int main(int argc, char* argv[]) {
   const int MAX_VOLUME = LEON ? 15 : 12;
 
   set_volume(s, MIN_VOLUME);
-#ifdef DEBUG_FPS
-  vipc_t1 = millis_since_boot();
-  double t1 = millis_since_boot();
-  int draws = 0, old_draws = 0;
-#endif //DEBUG_FPS
+  int draws = 0;
   while (!do_exit) {
     bool should_swap = false;
     if (!s->vision_connected) {
@@ -2832,6 +2790,7 @@ int main(int argc, char* argv[]) {
       usleep(30 * 1000);
     }
     pthread_mutex_lock(&s->lock);
+    double u1 = millis_since_boot();
 
     // light sensor is only exposed on EONs
     float clipped_brightness = (s->light_sensor*BRIGHTNESS_M) + BRIGHTNESS_B;
@@ -2846,9 +2805,10 @@ int main(int argc, char* argv[]) {
       polls[0].fd = s->touch_fd;
       polls[0].events = ZMQ_POLLIN;
       int ret = zmq_poll(polls, 1, 0);
-      if (ret < 0)
+      if (ret < 0){
+        if (errno == EINTR) continue;
         LOGW("poll failed (%d)", ret);
-      else if (ret > 0) {
+      } else if (ret > 0) {
         // awake on any touch
         int touch_x = -1, touch_y = -1;
         int touched = touch_read(&touch, &touch_x, &touch_y);
@@ -2856,7 +2816,13 @@ int main(int argc, char* argv[]) {
           set_awake(s, true);
         }
       }
+      if (s->status != STATUS_STOPPED) {
+        update_status(s, STATUS_STOPPED);
+      }
     } else {
+      if (s->status == STATUS_STOPPED) {
+        update_status(s, STATUS_DISENGAGED);
+      }
       // Car started, fetch a new rgb image from ipc and peek for zmq events.
       ui_update(s);
       ds_update(s->awake && (!s->vision_connected || s->plus_state != 0), s->awake);
@@ -2884,15 +2850,6 @@ int main(int argc, char* argv[]) {
         s->touchTimeout = 30;
       }
     }
-    if(s->touchTimeout>0)
-      s->touchTimeout--;
-
-    if(!s->vision_connected) {
-      // Visiond process is just stopped, force a redraw to make screen blank again.
-      ui_draw(s);
-      glFinish();
-      should_swap = true;
-    }
 
     // manage wakefulness
     if (s->awake_timeout > 0) {
@@ -2900,6 +2857,7 @@ int main(int argc, char* argv[]) {
     } else if(!ds.logOn) {
       set_awake(s, false);
     }
+
     // Don't waste resources on drawing in case screen is off or car is not started.
     if (s->awake && s->vision_connected) {
       dashcam(s, touch_x, touch_y);
@@ -2907,16 +2865,6 @@ int main(int argc, char* argv[]) {
       ui_draw(s);
       glFinish();
       should_swap = true;
-#ifdef DEBUG_FPS
-      draws++;
-      double t2 = millis_since_boot();
-      const double interval = 30.;
-      if(t2 - t1 >= interval * 1000.) {
-        printf("ui draw fps: %.2f\n",((double)(draws - old_draws)) / interval) ;
-        t1 = t2;
-        old_draws = draws;
-      }
-#endif
     }
     if (s->volume_timeout > 0) {
       s->volume_timeout--;
@@ -2925,12 +2873,27 @@ int main(int argc, char* argv[]) {
       set_volume(s, volume);
     }
 
-    // stop playing alert sounds if no controlsState msg for 1 second
-    if (s->alert_sound_timeout > 0) {
-      s->alert_sound_timeout--;
-    } else if (s->alert_sound != cereal_CarControl_HUDControl_AudibleAlert_none){
-      sound_file* sound = get_sound_file(s->alert_sound);
-      char* error = NULL;
+    if (s->controls_timeout > 0) {
+      s->controls_timeout--;
+    } else {
+      // stop playing alert sound
+      if ((!s->vision_connected || (s->vision_connected && s->alert_sound_timeout == 0)) &&
+            s->alert_sound != cereal_CarControl_HUDControl_AudibleAlert_none) {
+        stop_alert_sound(s->alert_sound);
+        s->alert_sound = cereal_CarControl_HUDControl_AudibleAlert_none;
+      }
+
+      // if visiond is still running and controlsState times out, display an alert
+      if (s->controls_seen && s->vision_connected && strcmp(s->scene.alert_text2, "Controls Unresponsive") != 0) {
+        s->scene.alert_size = ALERTSIZE_FULL;
+        if (s->status != STATUS_STOPPED) {
+          update_status(s, STATUS_ALERT);
+        }
+        snprintf(s->scene.alert_text1, sizeof(s->scene.alert_text1), "%s", "TAKE CONTROL IMMEDIATELY");
+        snprintf(s->scene.alert_text2, sizeof(s->scene.alert_text2), "%s", "Controls Unresponsive");
+        ui_draw_vision_alert(s, s->scene.alert_size, s->status, s->scene.alert_text1, s->scene.alert_text2);
+
+        s->alert_sound_timeout = 2 * UI_FREQ;
 
       slplay_stop_uri(sound->uri, &error);
       if(error) {
@@ -2949,6 +2912,12 @@ int main(int argc, char* argv[]) {
     // the bg thread needs to be scheduled, so the main thread needs time without the lock
     // safe to do this outside the lock?
     if (should_swap) {
+      double u2 = millis_since_boot();
+      if (u2-u1 > 66) {
+        // warn on sub 15fps
+        LOGW("slow frame(%d) time: %.2f", draws, u2-u1);
+      }
+      draws++;
       eglSwapBuffers(s->display, s->surface);
     }
   }

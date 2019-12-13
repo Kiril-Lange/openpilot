@@ -246,7 +246,7 @@ class CarController():
     # Send dashboard UI commands.
     if (frame % 10) == 0:
       idx = (frame//10) % 4
-      can_sends.extend(hondacan.create_ui_commands(self.packer, pcm_speed, hud, CS.CP.carFingerprint, CS.is_metric, idx, CS.CP.isPandaBlack))
+      can_sends.extend(hondacan.create_ui_commands(self.packer, pcm_speed, hud, CS.CP.carFingerprint, CS.is_metric, idx, CS.CP.isPandaBlack, CS.stock_hud))
 
     if CS.CP.carFingerprint in (CAR.INSIGHT):
       self.rough_speed(CS.lead_distance)
@@ -286,7 +286,7 @@ class CarController():
         ts = frame * DT_CTRL
         pump_on, self.last_pump_ts = brake_pump_hysteresis(apply_brake, self.apply_brake_last, self.last_pump_ts, ts)
         can_sends.append(hondacan.create_brake_command(self.packer, apply_brake, pump_on,
-          pcm_override, pcm_cancel_cmd, hud.fcw, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
+          pcm_override, pcm_cancel_cmd, hud.fcw, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack, CS.stock_brake))
         self.apply_brake_last = apply_brake
 
         if CS.CP.enableGasInterceptor:
