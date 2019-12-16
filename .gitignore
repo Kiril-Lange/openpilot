@@ -51,22 +51,4 @@ panda_jungle
 
 .coverage*
 htmlcov
-__pycache__
-libcereal*.a
-libmessaging.*
-libmessaging_shared.*
-services.h
-.sconsign.dblite
-libcereal_shared.so
-
-
-*.os
-*.tmp
-.*.swp
-can/*.so
-can/build/
-can/obj/
-can/packer_pyx.cpp
-can/parser_pyx.cpp
-can/packer_impl.cpp
 
