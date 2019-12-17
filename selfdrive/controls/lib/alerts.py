@@ -127,21 +127,21 @@ ALERTS = [
       "KEEP EYES ON ROAD",
       "User Appears Distracted",
       AlertStatus.userPrompt, AlertSize.mid,
-      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarning2, .1, .1, .1),
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, .1, .1, .1),
 
   Alert(
       "driverDistracted",
       "DISENGAGE IMMEDIATELY",
       "User Was Distracted",
       AlertStatus.critical, AlertSize.full,
-      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .1, .1, .1),
+      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.none, .1, .1, .1),
 
   Alert(
       "preDriverUnresponsive",
       "TOUCH STEERING WHEEL: No Face Detected",
       "",
       AlertStatus.normal, AlertSize.small,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, .0, .1, .1, alert_rate=0.75),
+      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, .0, .1, .1, alert_rate=0),
 
   Alert(
       "promptDriverUnresponsive",
@@ -452,7 +452,7 @@ ALERTS = [
       "TAKE CONTROL IMMEDIATELY",
       "Controls Mismatch",
       AlertStatus.critical, AlertSize.full,
-      Priority.HIGHEST, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, 2.2, 3., 4.),
+      Priority.HIGHEST, VisualAlert.steerRequired, AudibleAlert.none, 2.2, 3., 4.),
 
   Alert(
       "canError",

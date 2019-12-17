@@ -7,7 +7,7 @@ from selfdrive.kegman_conf import kegman_conf
 kegman = kegman_conf()
 
 
-_AWARENESS_TIME = min(int(kegman.conf['wheelTouchSeconds']), 600)    # x minutes limit without user touching steering wheels make the car enter a terminal status
+_AWARENESS_TIME = min(int(kegman.conf['wheelTouchSeconds']), 86400)    # x minutes limit without user touching steering wheels make the car enter a terminal status
 _AWARENESS_PRE_TIME_TILL_TERMINAL = 25.  # a first alert is issued 25s before expiration
 _AWARENESS_PROMPT_TIME_TILL_TERMINAL = 15.  # a second alert is issued 15s before start decelerating the car
 _DISTRACTED_TIME = 11.
@@ -29,15 +29,15 @@ _YAW_NATURAL_OFFSET = 0.08  # people don't seem to look straight when they drive
 
 _DISTRACTED_FILTER_TS = 0.25  # 0.6Hz
 
-_POSE_CALIB_MIN_SPEED = 13 # 30 mph
+_POSE_CALIB_MIN_SPEED = 80 # 30 mph
 _POSE_OFFSET_MIN_COUNT = 600 # valid data counts before calibration completes, 1 seg is 600 counts
 _POSE_OFFSET_MAX_COUNT = 3600 # stop deweighting new data after 6 min, aka "short term memory"
 
 _RECOVERY_FACTOR_MAX = 5. # relative to minus step change
 _RECOVERY_FACTOR_MIN = 1.25 # relative to minus step change
 
-MAX_TERMINAL_ALERTS = 3 # not allowed to engage after 3 terminal alerts
-MAX_TERMINAL_DURATION = 3000 # 30s
+MAX_TERMINAL_ALERTS = 999 # not allowed to engage after 3 terminal alerts
+MAX_TERMINAL_DURATION = 1 # 30s
 
 # model output refers to center of cropped image, so need to apply the x displacement offset
 RESIZED_FOCAL = 320.0
@@ -151,12 +151,12 @@ class DriverStatus():
     pitch_error *= _PITCH_WEIGHT
     pose_metric = np.sqrt(yaw_error**2 + pitch_error**2)
 
-    if pose_metric > _METRIC_THRESHOLD*pose.cfactor:
-      return DistractedType.BAD_POSE
-    elif (blink.left_blink + blink.right_blink)*0.5 > _BLINK_THRESHOLD*blink.cfactor:
-      return DistractedType.BAD_BLINK
-    else:
-      return DistractedType.NOT_DISTRACTED
+    #if pose_metric > _METRIC_THRESHOLD*pose.cfactor:
+    #  return DistractedType.BAD_POSE
+    #elif (blink.left_blink + blink.right_blink)*0.5 > _BLINK_THRESHOLD*blink.cfactor:
+    #  return DistractedType.BAD_BLINK
+    #else:
+    return DistractedType.NOT_DISTRACTED
 
   def set_policy(self, model_data):
     ep = min(model_data.meta.engagedProb, 0.8) / 0.8
