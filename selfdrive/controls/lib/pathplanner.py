@@ -5,9 +5,7 @@ from selfdrive.swaglog import cloudlog
 from selfdrive.controls.lib.lateral_mpc import libmpc_py
 from selfdrive.controls.lib.drive_helpers import MPC_COST_LAT
 from selfdrive.controls.lib.lane_planner import LanePlanner
-import cereal.messaging as messaging
 from selfdrive.kegman_conf import kegman_conf
-from selfdrive.controls.lib.curvature_learner import CurvatureLearner
 from common.numpy_fast import interp
 from selfdrive.config import Conversions as CV
 import cereal.messaging as messaging
@@ -16,7 +14,7 @@ from cereal import log
 LaneChangeState = log.PathPlan.LaneChangeState
 LaneChangeDirection = log.PathPlan.LaneChangeDirection
 
-LOG_MPC = os.environ.get('LOG_MPC', True)
+LOG_MPC = os.environ.get('LOG_MPC', False)
 
 DESIRES = {
   LaneChangeDirection.none: {
@@ -54,15 +52,12 @@ class PathPlanner():
 
     self.setup_mpc()
     self.solution_invalid_cnt = 0
-    self.curvature_offset = CurvatureLearner(debug=False)
     self.path_offset_i = 0.0
+
     self.mpc_frame = 0
     self.sR_delay_counter = 0
     self.steerRatio_new = 0.0
     self.sR_time = 1
-    self.lane_change_state = LaneChangeState.off
-    self.lane_change_timer = 0.0
-    self.prev_one_blinker = False
     
     kegman = kegman_conf(CP)
     if kegman.conf['steerRatio'] == "-1":
@@ -74,15 +69,20 @@ class PathPlanner():
       self.steerRateCost = CP.steerRateCost
     else:
       self.steerRateCost = float(kegman.conf['steerRateCost'])
-
+      
     self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost']))]
     self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1'])]
 
     self.steerRateCost_prev = self.steerRateCost
-    self.setup_mpc(self.steerRateCost)
-    
+    self.setup_mpc()
+   
+    self.lane_change_state = LaneChangeState.off
+    self.lane_change_timer = 0.0
+    self.prev_one_blinker = False
+
+
       
-  def setup_mpc(self, steer_rate_cost):
+  def setup_mpc(self):
     self.libmpc = libmpc_py.libmpc
     self.libmpc.init(MPC_COST_LAT.PATH, MPC_COST_LAT.LANE, MPC_COST_LAT.HEADING, self.steer_rate_cost)
 
@@ -100,6 +100,7 @@ class PathPlanner():
     
 
   def update(self, sm, pm, CP, VM):
+    
     v_ego = sm['carState'].vEgo
     angle_steers = sm['carState'].steeringAngle
     active = sm['controlsState'].active
@@ -109,16 +110,8 @@ class PathPlanner():
     # Run MPC
     self.angle_steers_des_prev = self.angle_steers_des_mpc
     VM.update_params(sm['liveParameters'].stiffnessFactor, sm['liveParameters'].steerRatio)
-    if active:
-      curvfac = self.curvature_offset.update(angle_steers - angle_offset, self.LP.d_poly, v_ego)
-    else:
-      curvfac = 0.
-
-    #if active and kegman.conf['zorro_mod'] == "1" and (v_ego > 18):
-    #  curvature_factor = VM.curvature_factor(v_ego) + curvfac
-    #else:
     curvature_factor = VM.curvature_factor(v_ego)
-
+    
     # Get steerRatio and steerRateCost from kegman.json every x seconds
     self.mpc_frame += 1
     if self.mpc_frame % 500 == 0:
@@ -127,19 +120,19 @@ class PathPlanner():
       if kegman.conf['tuneGernby'] == "1":
         self.steerRateCost = float(kegman.conf['steerRateCost'])
         if self.steerRateCost != self.steerRateCost_prev:
-          self.setup_mpc(self.steerRateCost)
+          self.setup_mpc()
           self.steerRateCost_prev = self.steerRateCost
-
+          
         self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost']))]
         self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1'])]
         self.sR_time = int(float(kegman.conf['sR_time'])) * 100
-
+         
       self.mpc_frame = 0
-
+    
     if v_ego > 11.111:
       # boost steerRatio by boost amount if desired steer angle is high
       self.steerRatio_new = interp(abs(angle_steers), self.sRBP, self.sR)
-
+      
       self.sR_delay_counter += 1
       if self.sR_delay_counter % self.sR_time != 0:
         if self.steerRatio_new > self.steerRatio:
@@ -149,7 +142,7 @@ class PathPlanner():
         self.sR_delay_counter = 0
     else:
       self.steerRatio = self.sR[0]
-
+      
     print("steerRatio = ", self.steerRatio)
 
     self.LP.parse_model(sm['model'])
@@ -175,7 +168,7 @@ class PathPlanner():
 
       # State transitions
       # off
-      if False: # self.lane_change_state == LaneChangeState.off and one_blinker and not self.prev_one_blinker:
+      if self.lane_change_state == LaneChangeState.off and one_blinker and not self.prev_one_blinker:
         self.lane_change_state = LaneChangeState.preLaneChange
 
       # pre
@@ -214,6 +207,7 @@ class PathPlanner():
       self.libmpc.init_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.LANE, MPC_COST_LAT.HEADING, self.steer_rate_cost)
 
     self.LP.update_d_poly(v_ego)
+
 
     # TODO: Check for active, override, and saturation
     # if active:

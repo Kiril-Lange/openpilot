@@ -1,6 +1,5 @@
 from selfdrive.controls.lib.pid import PIController
 from selfdrive.controls.lib.drive_helpers import get_steer_max
-from selfdrive.controls.lane_hugging import LaneHugging
 from cereal import car
 from cereal import log
 from selfdrive.kegman_conf import kegman_conf
@@ -14,7 +13,6 @@ class LatControlPID():
                             (CP.lateralTuning.pid.kiBP, CP.lateralTuning.pid.kiV),
                             k_f=CP.lateralTuning.pid.kf, pos_limit=1.0, sat_limit=CP.steerLimitTimer)
     self.angle_steers_des = 0.
-    self.lane_hugging = LaneHugging()
     self.mpc_frame = 0
 
   def reset(self):
@@ -37,7 +35,9 @@ class LatControlPID():
       self.mpc_frame = 0    
 
   def update(self, active, v_ego, angle_steers, angle_steers_rate, eps_torque, steer_override, rate_limited, CP, path_plan):
+
     self.live_tune(CP)
+ 
     pid_log = log.ControlsState.LateralPIDState.new_message()
     pid_log.steerAngle = float(angle_steers)
     pid_log.steerRate = float(angle_steers_rate)
@@ -47,7 +47,7 @@ class LatControlPID():
       pid_log.active = False
       self.pid.reset()
     else:
-      self.angle_steers_des = path_plan.angleSteers # get from MPC/PathPlanner
+      self.angle_steers_des = path_plan.angleSteers  # get from MPC/PathPlanner
 
       steers_max = get_steer_max(CP, v_ego)
       self.pid.pos_limit = steers_max
@@ -57,9 +57,9 @@ class LatControlPID():
         # TODO: feedforward something based on path_plan.rateSteers
         steer_feedforward -= path_plan.angleOffset   # subtract the offset, since it does not contribute to resistive torque
         steer_feedforward *= v_ego**2  # proportional to realigning tire momentum (~ lateral accel)
-
-      deadzone = self.deadzone
-
+      
+      deadzone = self.deadzone    
+        
       check_saturation = (v_ego > 10) and not rate_limited and not steer_override
       output_steer = self.pid.update(self.angle_steers_des, angle_steers, check_saturation=check_saturation, override=steer_override,
                                      feedforward=steer_feedforward, speed=v_ego, deadzone=deadzone)
