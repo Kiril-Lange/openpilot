@@ -204,7 +204,7 @@ class CarController():
     self.brake_last = rate_limit(brake, self.brake_last, -2., 1./100)
 
     # vehicle hud display, wait for one update from 10Hz 0x304 msg
-    if hud_show_lanes and CS.lkMode and not CS.left_blinker_on and not CS.right_blinker_on:
+    if hud_show_lanes and CS.lkMode: #and not CS.left_blinker_on and not CS.right_blinker_on:
       hud_lanes = 1
     else:
       hud_lanes = 0
