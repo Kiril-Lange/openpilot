@@ -248,19 +248,19 @@ class CarController():
       idx = (frame//10) % 4
       can_sends.extend(hondacan.create_ui_commands(self.packer, pcm_speed, hud, CS.CP.carFingerprint, CS.is_metric, idx, CS.CP.isPandaBlack, CS.stock_hud))
 
-    if CS.CP.carFingerprint in (CAR.INSIGHT):
-      self.rough_speed(CS.lead_distance)
-      if kegman.conf['simpledd'] == "1":
-        #Get the desiredTR before using it.
-        self.get_TR(CS.lead_distance, CS.v_ego, CS.stopped)
-        # update to CS so we can push it to ui through cereal
-        CS.desiredTR = self.desiredTR
-        if frame % 13 < 2 and CS.hud_distance != (self.desiredTR % 4):
-          # press distance bar button
-          can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.RESET, CruiseSettings.LEAD_DISTANCE, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
-          # always set cruise setting to 0 after button press
-          if frame % 25 < 5:
-            can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.RESET, CruiseSettings.RESET, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
+    #if CS.CP.carFingerprint in (CAR.INSIGHT):
+    #  self.rough_speed(CS.lead_distance)
+    #  if kegman.conf['simpledd'] == "1":
+    #    #Get the desiredTR before using it.
+    #    self.get_TR(CS.lead_distance, CS.v_ego, CS.stopped)
+    #    # update to CS so we can push it to ui through cereal
+    #    CS.desiredTR = self.desiredTR
+    #    if frame % 13 < 2 and CS.hud_distance != (self.desiredTR % 4):
+    #      # press distance bar button
+    #      can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.RESET, CruiseSettings.LEAD_DISTANCE, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
+    #      # always set cruise setting to 0 after button press
+    #      if frame % 25 < 5:
+    #        can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.RESET, CruiseSettings.RESET, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
 
 
     if CS.CP.radarOffCan:
