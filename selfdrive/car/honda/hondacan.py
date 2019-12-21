@@ -26,7 +26,7 @@ def create_brake_command(packer, apply_brake, pump_on, pcm_override, pcm_cancel_
     "COMPUTER_BRAKE_REQUEST": brake_rq,
     "SET_ME_1": 1,
     "BRAKE_LIGHTS": brakelights,
-    "CHIME": stock_brake["CHIME"],  # chime issued when disabling FCM
+    "CHIME": 0,  # chime issued when disabling FCM
     "FCW": fcw << 1,  # TODO: Why are there two bits for fcw?
     "AEB_REQ_1": 0,
     "AEB_REQ_2": 0,
@@ -40,9 +40,6 @@ def create_steering_control(packer, apply_steer, lkas_active, car_fingerprint, i
   values = {
     "STEER_TORQUE": apply_steer if lkas_active else 0,
     "STEER_TORQUE_REQUEST": lkas_active,
-    "SET_ME_X01": lkas_active,
-    "SET_ME_X01_2": lkas_active,
-    "SET_ME_X01_3": lkas_active
   }
   bus = get_lkas_cmd_bus(car_fingerprint, has_relay)
   return packer.make_can_msg("STEERING_CONTROL", bus, values, idx)
@@ -66,7 +63,6 @@ def create_ui_commands(packer, pcm_speed, hud, car_fingerprint, is_metric, idx, 
       'CRUISE_SPEED': hud.v_cruise,
       'ENABLE_MINI_CAR': hud.mini_car,
       'HUD_LEAD': hud.car,
-      'SET_ME_X01': 0x01,
       'HUD_DISTANCE_3': 1,
       'HUD_DISTANCE': hud.dist_lines,    # max distance setting on display
       'IMPERIAL_UNIT': speed_units,
@@ -100,10 +96,10 @@ def create_ui_commands(packer, pcm_speed, hud, car_fingerprint, is_metric, idx, 
   return commands
 
 
-def spam_buttons_command(packer, button_val, setting_val, idx, car_fingerprint, has_relay):
+def spam_buttons_command(packer, button_val, idx, car_fingerprint, has_relay):
   values = {
     'CRUISE_BUTTONS': button_val,
-    'CRUISE_SETTING': setting_val,
+    'CRUISE_SETTING': 0,
   }
   bus = get_pt_bus(car_fingerprint, has_relay)
   return packer.make_can_msg("SCM_BUTTONS", bus, values, idx)
