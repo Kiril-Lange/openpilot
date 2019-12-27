@@ -10,6 +10,7 @@ from common.numpy_fast import interp
 from selfdrive.config import Conversions as CV
 import cereal.messaging as messaging
 from cereal import log
+from selfdrive.controls.lib.curvature_learner import CurvatureLearner
 
 LaneChangeState = log.PathPlan.LaneChangeState
 LaneChangeDirection = log.PathPlan.LaneChangeDirection
@@ -58,6 +59,7 @@ class PathPlanner():
     self.sR_delay_counter = 0
     self.steerRatio_new = 0.0
     self.sR_time = 1
+    self.curvature_offset = CurvatureLearner(debug=False)
     
     kegman = kegman_conf(CP)
     if kegman.conf['steerRatio'] == "-1":
@@ -110,8 +112,9 @@ class PathPlanner():
     # Run MPC
     self.angle_steers_des_prev = self.angle_steers_des_mpc
     VM.update_params(sm['liveParameters'].stiffnessFactor, sm['liveParameters'].steerRatio)
-    curvature_factor = VM.curvature_factor(v_ego)
-    
+    #curvature_factor = VM.curvature_factor(v_ego)
+    #zorro's curvature learner v4
+    curvature_factor = VM.curvature_factor(v_ego) + self.curvature_offset.update(angle_steers - angle_offset, self.LP.d_poly)
     # Get steerRatio and steerRateCost from kegman.json every x seconds
     self.mpc_frame += 1
     if self.mpc_frame % 500 == 0:
