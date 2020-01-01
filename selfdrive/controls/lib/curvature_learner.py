@@ -53,7 +53,7 @@ class CurvatureLearner:
                 self.learned_offsets["outer"] += d_poly[3] / self.learning_rate
                 self.offset = self.learned_offsets["outer"]
 
-        self.offset = clip(self.offset, -0.3, 0.3)
+        self.offset = clip(self.offset, -0.2, 0.2)
         self.frame += 1
 
         if self.frame == 12000:  # every 2 mins
