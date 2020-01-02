@@ -1,6 +1,6 @@
 import json
 
-from common.clock import sec_since_boot
+from common.realtime import sec_since_boot
 from common.params import Params
 from selfdrive.controls.lib.pid import PIController
 from selfdrive.controls.lib.drive_helpers import get_steer_max
