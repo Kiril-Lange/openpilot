@@ -32,6 +32,20 @@ class kegman_conf():
       if self.conf['Kf'] == "-1":
         self.conf['Kf'] = str('{:f}'.format(CP.lateralTuning.pid.kf))
         write_conf = True
+      if self.conf['dampTime'] == "-1":
+        self.conf['dampTime'] = str(round(CP.lateralTuning.pid.dampTime,3))
+        write_conf = True
+      if self.conf['reactMPC'] == "-1":
+        self.conf['reactMPC'] = str(round(CP.lateralTuning.pid.reactMPC,3))
+        write_conf = True
+      if self.conf['rateFFGain'] == "-1":
+        self.conf['rateFFGain'] = str(round(CP.lateralTuning.pid.rateFFGain,3))
+        write_conf = True
+      if self.conf['polyDamp'] == "-1":
+        self.conf['polyReact'] = str(round(CP.lateralTuning.pid.polyReactTime,3))
+        self.conf['polyDamp'] = str(round(CP.lateralTuning.pid.polyDampTime,3))
+        self.conf['polyFactor'] = str(round(CP.lateralTuning.pid.polyFactor,3))
+        write_conf = True
 
     if self.conf['steerRatio'] == "-1":
       self.conf['steerRatio'] = str(round(CP.steerRatio,3))
@@ -88,6 +102,22 @@ class kegman_conf():
         self.config.update({"deadzone":"0.0"})
         self.element_updated = True
 
+      if "rateFFGain" not in self.config:
+        self.config.update({"rateFFGain":"-1"})
+        self.element_updated = True
+      if "dampTime" not in self.config:
+        self.config.update({"dampTime":"-1"})
+        self.element_updated = True
+      if "reactMPC" not in self.config:
+        self.config.update({"reactMPC":"-1"})
+        self.element_updated = True
+
+      if "polyDamp" not in self.config:
+        self.config.update({"polyFactor":"-1"})
+        self.config.update({"polyDamp":"-1"})
+        self.config.update({"polyReact":"-1"})
+        self.element_updated = True
+
       if "1barBP0" not in self.config:
         self.config.update({"1barBP0":"-0.1"})
         self.config.update({"1barBP1":"2.25"})
@@ -142,7 +172,8 @@ class kegman_conf():
 		     "3barBP1":"3.0", "1barMax":"2.1", "2barMax":"2.1", "3barMax":"2.1", \
 		     "1barHwy":"0.4", "2barHwy":"0.3", "3barHwy":"0.1", \
          "steerRatio":"-1", "steerRateCost":"-1", "slowOnCurves":"0", "Kf":"-1", "zorro_mod":"1", "shane_mod":"1", \
-                     "sR_boost": "4.5", "sR_BP0": "3.5", "sR_BP1": "10", "sR_time": "1.5", "simpledd":"0"}
+                     "sR_boost": "4.5", "sR_BP0": "3.5", "sR_BP1": "10", "sR_time": "1.5", "simpledd":"0", \
+                     "reactMPC":"-1", "polyReact":"-1", "polyDamp":"-1", "polyReact":"-1", "rateFFGain":"-1", "dampTime":"-1"}
 
       self.write_config(self.config)
     return self.config

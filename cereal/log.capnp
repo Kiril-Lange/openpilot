@@ -451,6 +451,8 @@ struct ControlsState @0x97ff69c53601abf1 {
   jerkFactor @12 :Float32;
   angleSteers @13 :Float32;     # Steering angle in degrees.
   angleSteersDes @29 :Float32;
+  dampAngleSteers @55 :Float32;     # Steering angle in degrees.
+  dampAngleSteersDes @56 :Float32;
   curvature @37 :Float32;       # path curvature from vehicle model
   hudLeadDEPRECATED @14 :Int32;
   cumLagMs @15 :Float32;
@@ -542,6 +544,10 @@ struct ControlsState @0x97ff69c53601abf1 {
     f @6 :Float32;
     output @7 :Float32;
     saturated @8 :Bool;
+    angleBias @9 :Float32;
+    angleFFRatio @10 :Float32;
+    angleFFGain @11 :Float32;
+    p2 @12 :Float32;
    }
 
   struct LateralLQRState {
@@ -732,6 +738,8 @@ struct PathPlan {
   lProb @5 :Float32;
   rPoly @6 :List(Float32);
   rProb @7 :Float32;
+  pPoly @23 :List(Float32);
+  pProb @24 :Float32;
 
   angleSteers @8 :Float32; # deg
   rateSteers @13 :Float32; # deg/s
@@ -745,6 +753,9 @@ struct PathPlan {
   desire @17 :Desire;
   laneChangeState @18 :LaneChangeState;
   laneChangeDirection @19 :LaneChangeDirection;
+  mpcAngles @20 :List(Float32);
+  mpcRates @21 :List(Float32);
+  mpcTimes @22 :List(Float32);
 
   enum Desire {
     none @0;

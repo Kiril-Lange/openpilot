@@ -164,6 +164,13 @@ class CarInterface(CarInterfaceBase):
 
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
     ret.lateralTuning.pid.kf = 0.00006 # conservative feed-forward
+    ret.lateralTuning.pid.dampTime = 0.02
+    ret.lateralTuning.pid.reactMPC = -0.05
+    ret.lateralTuning.pid.rateFFGain = 0.4
+    ret.lateralTuning.pid.polyFactor = 0.0015
+    ret.lateralTuning.pid.polyDampTime = 0.2
+    ret.lateralTuning.pid.polyReactTime = 2.0
+    ret.lateralTuning.pid.polyScale = [[0.0, 0.5, 1.0, 2.0, 5.0], [1.0, 0.5, 0.25, 0.1, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0]]  # [abs rate, scale UP, scale DOWN]
 
     if candidate in [CAR.CIVIC, CAR.CIVIC_BOSCH]:
       stop_and_go = True
@@ -280,9 +287,13 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.7
       ret.centerToFront = ret.wheelbase * 0.39
       ret.steerRatio = 12.8  # 12.58 is spec end-to-end
-      tire_stiffness_factor = 0.72
+      tire_stiffness_factor = 0.68
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.54], [0.23]]
       ret.lateralTuning.pid.kf = 0.00006
+      ret.lateralTuning.pid.dampTime = 0.1
+      ret.lateralTuning.pid.reactMPC = 0.0
+      ret.lateralTuning.pid.dampMPC = 0.25
+      ret.lateralTuning.pid.rateFFGain = 0.4
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
       ret.longitudinalTuning.kpV = [1.2, 0.8, 0.5]
       ret.longitudinalTuning.kiBP = [0., 35.]
@@ -388,7 +399,7 @@ class CarInterface(CarInterfaceBase):
     ret.startAccel = 0.5
 
     ret.steerActuatorDelay = 1.0
-    ret.steerRateCost = 0.5
+    ret.steerRateCost = 0.3
     ret.steerLimitTimer = 0.8
 
     return ret
