@@ -108,13 +108,15 @@ class PathPlanner():
     active = sm['controlsState'].active
 
     angle_offset = sm['liveParameters'].angleOffset
+    angle_offset_average = sm['liveParameters'].angleOffsetAverage
+    #angle_offset = angle_offset_average + sm['controlsState'].lateralControlState.pidState.angleBias
 
     # Run MPC
     self.angle_steers_des_prev = self.angle_steers_des_mpc
     VM.update_params(sm['liveParameters'].stiffnessFactor, sm['liveParameters'].steerRatio)
     #curvature_factor = VM.curvature_factor(v_ego)
     #zorro's curvature learner v4
-    curvature_factor = VM.curvature_factor(v_ego) + self.curvature_offset.update(angle_steers - angle_offset, self.LP.d_poly)
+    curvature_factor = VM.curvature_factor(v_ego) #+ self.curvature_offset.update(angle_steers - angle_offset, self.LP.d_poly)
     # Get steerRatio and steerRateCost from kegman.json every x seconds
     self.mpc_frame += 1
     if self.mpc_frame % 500 == 0:
