@@ -13,6 +13,7 @@ class LatControlPID():
                             k_f=CP.lateralTuning.pid.kf, pos_limit=1.0, sat_limit=CP.steerLimitTimer)
     self.angle_steers_des = 0.
     self.mpc_frame = 0
+    self.deadzone = float(self.kegman.conf['deadzone'])
 
   def reset(self):
     self.pid.reset()
@@ -26,10 +27,10 @@ class LatControlPID():
         self.steerKpV = [float(self.kegman.conf['Kp'])]
         self.steerKiV = [float(self.kegman.conf['Ki'])]
         self.steerKf = [float(self.kegman.conf['Kf'])]
-        self.deadzone = float(self.kegman.conf['deadzone'])
         self.pid = PIController((CP.lateralTuning.pid.kpBP, self.steerKpV),
                             (CP.lateralTuning.pid.kiBP, self.steerKiV),
                             k_f=self.steerKf, pos_limit=1.0)
+      self.deadzone = [float(self.kegman.conf['deadzone'])]
       self.mpc_frame = 0
 
   def update(self, active, v_ego, angle_steers, angle_steers_rate, eps_torque, steer_override, rate_limited, CP, path_plan):
@@ -54,10 +55,10 @@ class LatControlPID():
         # TODO: feedforward something based on path_plan.rateSteers
         steer_feedforward -= path_plan.angleOffset   # subtract the offset, since it does not contribute to resistive torque
         steer_feedforward *= v_ego**2  # proportional to realigning tire momentum (~ lateral accel)
-      
+      deadzone = self.deadzone
       check_saturation = (v_ego > 10) and not rate_limited and not steer_override
       output_steer = self.pid.update(self.angle_steers_des, angle_steers, check_saturation=check_saturation, override=steer_override,
-                                     feedforward=steer_feedforward, speed=v_ego, deadzone=self.deadzone)
+                                     feedforward=steer_feedforward, speed=v_ego, deadzone=deadzone)
       pid_log.active = True
       pid_log.p = self.pid.p
       pid_log.i = self.pid.i
