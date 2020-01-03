@@ -237,8 +237,8 @@ def state_transition(frame, CS, CP, state, events, soft_disable_timer, v_cruise_
   return state, soft_disable_timer, v_cruise_kph, v_cruise_kph_last
 
 
-def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cruise_kph, v_cruise_kph_last,
-                  AM, rk, driver_status, LaC, LoC, read_only, is_metric, cal_perc, last_blinker_frame):
+def state_control(frame, rcv_frame, plan, path_plan, live_params, CS, CP, state, events, v_cruise_kph, v_cruise_kph_last,
+                  AM, rk, driver_status, LaC, LoC, VM, read_only, is_metric, cal_perc, last_blinker_frame):
   """Given the state, this function returns an actuators packet"""
 
   actuators = car.CarControl.Actuators.new_message()
@@ -288,7 +288,7 @@ def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cr
   actuators.gas, actuators.brake = LoC.update(active, CS.vEgo, CS.brakePressed, CS.standstill, CS.cruiseState.standstill,
                                               v_cruise_kph, v_acc_sol, plan.vTargetFuture, a_acc_sol, CP)
   # Steering PID loop and lateral MPC
-  actuators.steer, actuators.steerAngle, lac_log = LaC.update(active, CS.vEgo, CS.steeringAngle, CS.steeringRate, CS.steeringTorqueEps, CS.steeringPressed, CS.steeringRateLimited, CP, path_plan)
+  actuators.steer, actuators.steerAngle, lac_log = LaC.update(active, CS.vEgo, CS.steeringAngle, CS.steeringRate, CS.steeringTorqueEps, CS.steeringPressed, CS.leftBlinker or CS.rightBlinker, CS.steeringRateLimited, CP, VM, path_plan, live_params)
 
   # Send a "steering required alert" if saturation count has reached the limit
   if lac_log.saturated and not CS.steeringPressed:
@@ -478,7 +478,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None):
     pm = messaging.PubMaster(['sendcan', 'controlsState', 'carState', 'carControl', 'carEvents', 'carParams'])
 
   if sm is None:
-    sm = messaging.SubMaster(['thermal', 'health', 'liveCalibration', 'driverMonitoring', 'plan', 'pathPlan', \
+    sm = messaging.SubMaster(['thermal', 'health', 'liveCalibration', 'driverMonitoring', 'plan', 'pathPlan', 'liveParameters', \
                               'model', 'gpsLocation'], ignore_alive=['gpsLocation'])
 
 
@@ -594,8 +594,8 @@ def controlsd_thread(sm=None, pm=None, can_sock=None):
 
     # Compute actuators (runs PID loops and lateral MPC)
     actuators, v_cruise_kph, driver_status, v_acc, a_acc, lac_log, last_blinker_frame = \
-      state_control(sm.frame, sm.rcv_frame, sm['plan'], sm['pathPlan'], CS, CP, state, events, v_cruise_kph, v_cruise_kph_last, AM, rk,
-                    driver_status, LaC, LoC, read_only, is_metric, cal_perc, last_blinker_frame)
+      state_control(sm.frame, sm.rcv_frame, sm['plan'], sm['pathPlan'], sm['liveParameters'], CS, CP, state, events, v_cruise_kph, v_cruise_kph_last, AM, rk,
+                    driver_status, LaC, LoC, VM, read_only, is_metric, cal_perc, last_blinker_frame)
 
     prof.checkpoint("State Control")
 
