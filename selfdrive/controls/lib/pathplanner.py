@@ -41,17 +41,12 @@ DESIRES = {
 def calc_states_after_delay(states, v_ego, steer_angle, curvature_factor, steer_ratio, delay):
   states[0].x = v_ego * delay
   states[0].psi = v_ego * curvature_factor * math.radians(steer_angle) / steer_ratio * delay
-  states[0].delta = math.radians(steer_angle) / steer_ratio
   return states
 
 
 class PathPlanner():
   def __init__(self, CP):
     self.LP = LanePlanner()
-
-    self.l_poly = libmpc_py.ffi.new("double[4]")
-    self.r_poly = libmpc_py.ffi.new("double[4]")
-    self.p_poly = libmpc_py.ffi.new("double[4]")
 
     self.last_cloudlog_t = 0
     self.steer_rate_cost = CP.steerRateCost
@@ -100,11 +95,6 @@ class PathPlanner():
     self.cur_state[0].psi = 0.0
     self.cur_state[0].delta = 0.0
 
-    self.mpc_angles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    self.mpc_rates = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    self.mpc_times = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    self.mpc_probs = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-
     self.angle_steers_des = 0.0
     self.angle_steers_des_mpc = 0.0
     self.angle_steers_des_prev = 0.0
@@ -119,7 +109,7 @@ class PathPlanner():
 
     angle_offset = sm['liveParameters'].angleOffset
     angle_offset_average = sm['liveParameters'].angleOffsetAverage
-    angle_offset = angle_offset_average + sm['controlsState'].lateralControlState.pidState.angleBias
+    #angle_offset = angle_offset_average + sm['controlsState'].lateralControlState.pidState.angleBias
 
     # Run MPC
     self.angle_steers_des_prev = self.angle_steers_des_mpc
@@ -243,22 +233,14 @@ class PathPlanner():
     # reset to current steer angle if not active or overriding
     if active:
       delta_desired = self.mpc_solution[0].delta[1]
-      for i in range(1,6):
-        self.mpc_times[i] = self.mpc_times[i-1] + 0.05
-        self.mpc_rates[i-1] = float(math.degrees(self.mpc_solution[0].rate[i-1] * VM.sR))
-        self.mpc_angles[i] = (0.05 * self.mpc_rates[i-1] + self.mpc_angles[i-1])
-      self.mpc_angles[6] = (0.15 * self.mpc_rates[5] + self.mpc_angles[5])
-      self.mpc_times[6] = self.mpc_times[5] + 0.15
       rate_desired = math.degrees(self.mpc_solution[0].rate[0] * self.steerRatio)
-      self.angle_steers_des_mpc = float(math.degrees(self.mpc_solution[0].delta[1] * VM.sR) + angle_offset_average)
-
     else:
       delta_desired = math.radians(angle_steers - angle_offset) / self.steerRatio
       rate_desired = 0.0
 
     self.cur_state[0].delta = delta_desired
 
-    #self.angle_steers_des_mpc = float(math.degrees(delta_desired * self.steerRatio) + angle_offset)
+    self.angle_steers_des_mpc = float(math.degrees(delta_desired * self.steerRatio) + angle_offset)
 
     #  Check for infeasable MPC solution
     mpc_nans = any(math.isnan(x) for x in self.mpc_solution[0].delta)
@@ -281,20 +263,15 @@ class PathPlanner():
     plan_send.init('pathPlan')
     plan_send.valid = sm.all_alive_and_valid(service_list=['carState', 'controlsState', 'liveParameters', 'model'])
     plan_send.pathPlan.laneWidth = float(self.LP.lane_width)
-    plan_send.pathPlan.pPoly = [float(x) for x in self.LP.p_poly]
     plan_send.pathPlan.dPoly = [float(x) for x in self.LP.d_poly]
     plan_send.pathPlan.lPoly = [float(x) for x in self.LP.l_poly]
     plan_send.pathPlan.lProb = float(self.LP.l_prob)
     plan_send.pathPlan.rPoly = [float(x) for x in self.LP.r_poly]
     plan_send.pathPlan.rProb = float(self.LP.r_prob)
-    plan_send.pathPlan.pProb = float(self.LP.p_prob)
 
     plan_send.pathPlan.angleSteers = float(self.angle_steers_des_mpc)
     plan_send.pathPlan.rateSteers = float(rate_desired)
     plan_send.pathPlan.angleOffset = float(sm['liveParameters'].angleOffsetAverage)
-    plan_send.pathPlan.mpcAngles = [float(x) for x in self.mpc_angles]
-    plan_send.pathPlan.mpcTimes = [float(x) for x in self.mpc_times]
-    plan_send.pathPlan.mpcRates = [float(x) for x in self.mpc_rates]
     plan_send.pathPlan.mpcSolutionValid = bool(plan_solution_valid)
     plan_send.pathPlan.paramsValid = bool(sm['liveParameters'].valid)
     plan_send.pathPlan.sensorValid = bool(sm['liveParameters'].sensorValid)
