@@ -8,7 +8,6 @@ from selfdrive.kegman_conf import kegman_conf
 class LatControlPID():
   def __init__(self, CP):
     self.kegman = kegman_conf(CP)
-    self.deadzone = float(self.kegman.conf['deadzone'])
     self.pid = PIController((CP.lateralTuning.pid.kpBP, CP.lateralTuning.pid.kpV),
                             (CP.lateralTuning.pid.kiBP, CP.lateralTuning.pid.kiV),
                             k_f=CP.lateralTuning.pid.kf, pos_limit=1.0, sat_limit=CP.steerLimitTimer)
@@ -26,18 +25,14 @@ class LatControlPID():
       if self.kegman.conf['tuneGernby'] == "1":
         self.steerKpV = [float(self.kegman.conf['Kp'])]
         self.steerKiV = [float(self.kegman.conf['Ki'])]
-        self.steerKf = float(self.kegman.conf['Kf'])
+        self.steerKf = [float(self.kegman.conf['Kf'])]
+        self.deadzone = float(self.kegman.conf['deadzone'])
         self.pid = PIController((CP.lateralTuning.pid.kpBP, self.steerKpV),
                             (CP.lateralTuning.pid.kiBP, self.steerKiV),
                             k_f=self.steerKf, pos_limit=1.0)
-        self.deadzone = float(self.kegman.conf['deadzone'])
-        
-      self.mpc_frame = 0    
+      self.mpc_frame = 0
 
   def update(self, active, v_ego, angle_steers, angle_steers_rate, eps_torque, steer_override, rate_limited, CP, path_plan):
-
-    self.live_tune(CP)
- 
     pid_log = log.ControlsState.LateralPIDState.new_message()
     pid_log.steerAngle = float(angle_steers)
     pid_log.steerRate = float(angle_steers_rate)
@@ -47,6 +42,8 @@ class LatControlPID():
       pid_log.active = False
       self.pid.reset()
     else:
+      #disable live-tune
+      #self.live_tune(CP)
       self.angle_steers_des = path_plan.angleSteers  # get from MPC/PathPlanner
 
       steers_max = get_steer_max(CP, v_ego)
