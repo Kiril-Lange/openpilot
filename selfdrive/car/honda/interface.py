@@ -280,8 +280,8 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.7
       ret.centerToFront = ret.wheelbase * 0.39
       ret.steerRatio = 12.58  # 12.58 is spec end-to-end
-      ret.steerRateCost = 0.1
-      tire_stiffness_factor = 0.84
+      ret.steerRateCost = 0.5
+      tire_stiffness_factor = 0.444
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.54], [0.23]]
       ret.lateralTuning.pid.kf = 0.00003
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
