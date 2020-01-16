@@ -33,7 +33,14 @@ static void set_brightness(UIState *s, int brightness) {
 }
 
 static void get_ip_addr(UIState *s) {
-  s->ip_address = system("ip route get 1.2 | awk '{print $7}' | sed ':a;N;$!ba;s/\n//g'");
+  FILE *op = popen("ip route get 1.2 | awk '{print $7}' | sed ':a;N;$!ba;s/\n//g'", "r");
+  char var[64];
+  while (fgets(var, sizeof(var), op) != NULL) {
+    printf("%s", var);
+  }
+  pclose(op);
+  snprintf(s->ip_address, sizeof(s->ip_address), "%s", var);
+  s->ip_address[0] = '\0';
 }
 
 static void set_awake(UIState *s, bool awake) {
