@@ -495,6 +495,12 @@ static void ui_draw_vision_maxspeed(UIState *s) {
     nvgText(s->vg, viz_maxspeed_x+(viz_maxspeed_xo/2)+(viz_maxspeed_w/2), 242, "N/A", NULL);
   }
 
+  // Draw IP Address
+  nvgFontFace(s->vg, "sans-semibold");
+  nvgFontSize(s->vg, 15 * 2.5);
+  nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
+  nvgText(s->vg, 150, 292, s->ip_address, NULL);
+
 }
 
 static void ui_draw_vision_speedlimit(UIState *s) {

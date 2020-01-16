@@ -203,6 +203,7 @@ typedef struct UIState {
 
   UIScene scene;
   bool awake;
+  char ip_address[64];
 
   // timeouts
   int awake_timeout;
