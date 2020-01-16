@@ -456,7 +456,6 @@ void* processing_thread(void *arg) {
     if (cnt % 100 == 3) {
       uint8_t* thumbnail_buffer = NULL;
       uint64_t thumbnail_len = 0;
-
       unsigned char *row = (unsigned char *)malloc(s->rgb_width/4*3);
 
       struct jpeg_compress_struct cinfo;
@@ -679,14 +678,6 @@ void* visionserver_client_thread(void* arg) {
           }
         } else {
           assert(false);
-        }
-
-        if (stream_type == VISION_STREAM_RGB_BACK ||
-            stream_type == VISION_STREAM_RGB_FRONT) {
-          /*stream_bufs->buf_info.ui_info = (VisionUIInfo){
-            .transformed_width = s->model.in.transformed_width,
-            .transformed_height = s->model.in.transformed_height,
-          };*/
         }
         vipc_send(fd, &rep);
         streams[stream_type].subscribed = true;

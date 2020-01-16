@@ -1,6 +1,7 @@
 from selfdrive.config import Conversions as CV
 from selfdrive.car.honda.values import CAR, HONDA_BOSCH
 from common.params import Params
+from selfdrive.car.honda.values import HONDA_BOSCH
 
 
 def get_pt_bus(car_fingerprint, has_relay):
@@ -26,7 +27,7 @@ def create_brake_command(packer, apply_brake, pump_on, pcm_override, pcm_cancel_
     "COMPUTER_BRAKE_REQUEST": brake_rq,
     "SET_ME_1": 1,
     "BRAKE_LIGHTS": brakelights,
-    "CHIME": stock_brake["CHIME"],  # chime issued when disabling FCM
+    "CHIME": stock_brake["CHIME"] if fcw else 0,  # send the chime for stock fcw
     "FCW": fcw << 1,  # TODO: Why are there two bits for fcw?
     "AEB_REQ_1": 0,
     "AEB_REQ_2": 0,
@@ -64,7 +65,7 @@ def create_ui_commands(packer, pcm_speed, hud, car_fingerprint, is_metric, idx, 
       'PCM_SPEED': pcm_speed * CV.MS_TO_KPH,
       'PCM_GAS': hud.pcm_accel,
       'CRUISE_SPEED': hud.v_cruise,
-      'ENABLE_MINI_CAR': hud.mini_car,
+      'ENABLE_MINI_CAR': 1,
       'HUD_LEAD': hud.car,
       'SET_ME_X01': 0x01,
       'HUD_DISTANCE_3': 1,
@@ -89,14 +90,6 @@ def create_ui_commands(packer, pcm_speed, hud, car_fingerprint, is_metric, idx, 
   }
   commands.append(packer.make_can_msg('LKAS_HUD', bus_lkas, lkas_hud_values, idx))
 
-  if car_fingerprint in (CAR.CIVIC, CAR.ODYSSEY):
-    radar_hud_values = {
-      'ACC_ALERTS': hud.acc_alert,
-      'LEAD_SPEED': 0x1fe,  # What are these magic values
-      'LEAD_STATE': 0x7,
-      'LEAD_DISTANCE': 0x1e,
-    }
-    commands.append(packer.make_can_msg('RADAR_HUD', bus_pt, radar_hud_values, idx))
   return commands
 
 

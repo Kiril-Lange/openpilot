@@ -16,6 +16,8 @@ LaneChangeState = log.PathPlan.LaneChangeState
 LaneChangeDirection = log.PathPlan.LaneChangeDirection
 
 LOG_MPC = os.environ.get('LOG_MPC', True)
+LANE_CHANGE_SPEED_MIN = 45 * CV.MPH_TO_MS
+LANE_CHANGE_TIME_MAX = 10.
 
 DESIRES = {
   LaneChangeDirection.none: {
@@ -54,6 +56,9 @@ class PathPlanner():
     self.setup_mpc()
     self.solution_invalid_cnt = 0
     self.path_offset_i = 0.0
+    self.lane_change_state = LaneChangeState.off
+    self.lane_change_timer = 0.0
+    self.prev_one_blinker = False
 
     self.mpc_frame = 0
     self.sR_delay_counter = 0
@@ -193,6 +198,70 @@ class PathPlanner():
       # Don't allow starting lane change below 45 mph
       if (v_ego < 45 * CV.MPH_TO_MS) and (self.lane_change_state == LaneChangeState.preLaneChange):
         self.lane_change_state = LaneChangeState.off
+
+    if self.lane_change_state in [LaneChangeState.off, LaneChangeState.preLaneChange]:
+      self.lane_change_timer = 0.0
+    else:
+      self.lane_change_timer += DT_MDL
+
+    self.prev_one_blinker = one_blinker
+
+    desire = DESIRES[lane_change_direction][self.lane_change_state]
+
+    # Turn off lanes during lane change
+    if desire == log.PathPlan.Desire.laneChangeRight or desire == log.PathPlan.Desire.laneChangeLeft:
+      self.LP.l_prob = 0.
+      self.LP.r_prob = 0.
+      self.libmpc.init_weights(MPC_COST_LAT.PATH / 10.0, MPC_COST_LAT.LANE, MPC_COST_LAT.HEADING, self.steer_rate_cost)
+    else:
+      self.libmpc.init_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.LANE, MPC_COST_LAT.HEADING, self.steer_rate_cost)
+
+    self.LP.update_d_poly(v_ego)
+
+
+    self.LP.parse_model(sm['model'])
+
+    # Lane change logic
+    lane_change_direction = LaneChangeDirection.none
+    one_blinker = sm['carState'].leftBlinker != sm['carState'].rightBlinker
+    below_lane_change_speed = v_ego < LANE_CHANGE_SPEED_MIN
+
+    if not active or self.lane_change_timer > LANE_CHANGE_TIME_MAX:
+      self.lane_change_state = LaneChangeState.off
+    else:
+      if sm['carState'].leftBlinker:
+        lane_change_direction = LaneChangeDirection.left
+      elif sm['carState'].rightBlinker:
+        lane_change_direction = LaneChangeDirection.right
+
+      torque_applied = sm['carState'].steeringPressed and \
+                       ((sm['carState'].steeringTorque > 0 and lane_change_direction == LaneChangeDirection.left) or \
+                        (sm['carState'].steeringTorque < 0 and lane_change_direction == LaneChangeDirection.right))
+
+      lane_change_prob = self.LP.l_lane_change_prob + self.LP.r_lane_change_prob
+
+      # State transitions
+      # off
+      if self.lane_change_state == LaneChangeState.off and one_blinker and not self.prev_one_blinker and not below_lane_change_speed:
+        self.lane_change_state = LaneChangeState.preLaneChange
+
+      # pre
+      elif self.lane_change_state == LaneChangeState.preLaneChange:
+        if not one_blinker or below_lane_change_speed:
+          self.lane_change_state = LaneChangeState.off
+        elif torque_applied:
+          self.lane_change_state = LaneChangeState.laneChangeStarting
+
+      # starting
+      elif self.lane_change_state == LaneChangeState.laneChangeStarting and lane_change_prob > 0.5:
+        self.lane_change_state = LaneChangeState.laneChangeFinishing
+
+      # finishing
+      elif self.lane_change_state == LaneChangeState.laneChangeFinishing and lane_change_prob < 0.2:
+        if one_blinker:
+          self.lane_change_state = LaneChangeState.preLaneChange
+        else:
+          self.lane_change_state = LaneChangeState.off
 
     if self.lane_change_state in [LaneChangeState.off, LaneChangeState.preLaneChange]:
       self.lane_change_timer = 0.0

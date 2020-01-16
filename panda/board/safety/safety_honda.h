@@ -10,6 +10,22 @@ const AddrBus HONDA_N_TX_MSGS[] = {{0xE4, 0}, {0x194, 0}, {0x1FA, 0}, {0x200, 0}
 const AddrBus HONDA_BH_TX_MSGS[] = {{0xE4, 0}, {0x296, 1}, {0x33D, 0}};  // Bosch Harness
 const AddrBus HONDA_BG_TX_MSGS[] = {{0xE4, 2}, {0x296, 0}, {0x33D, 2}};  // Bosch Giraffe
 const int HONDA_GAS_INTERCEPTOR_THRESHOLD = 328;  // ratio between offset and gain from dbc file
+// Nidec and Bosch giraffe have pt on bus 0
+AddrCheckStruct honda_rx_checks[] = {
+  {.addr = {0x1A6, 0x296}, .bus = 0, .check_checksum = true, .max_counter = 3U, .expected_timestep = 40000U},
+  {.addr = {       0x158}, .bus = 0, .check_checksum = true, .max_counter = 3U, .expected_timestep = 10000U},
+  {.addr = {       0x17C}, .bus = 0, .check_checksum = true, .max_counter = 3U, .expected_timestep = 10000U},
+};
+const int HONDA_RX_CHECKS_LEN = sizeof(honda_rx_checks) / sizeof(honda_rx_checks[0]);
+
+// Bosch harness has pt on bus 1
+AddrCheckStruct honda_bh_rx_checks[] = {
+  {.addr = {0x296}, .bus = 1, .check_checksum = true, .max_counter = 3U, .expected_timestep = 40000U},
+  {.addr = {0x158}, .bus = 1, .check_checksum = true, .max_counter = 3U, .expected_timestep = 10000U},
+  {.addr = {0x17C}, .bus = 1, .check_checksum = true, .max_counter = 3U, .expected_timestep = 10000U},
+};
+const int HONDA_BH_RX_CHECKS_LEN = sizeof(honda_bh_rx_checks) / sizeof(honda_bh_rx_checks[0]);
+
 int honda_brake = 0;
 int honda_gas_prev = 0;
 bool honda_brake_pressed_prev = false;
@@ -18,7 +34,34 @@ bool honda_bosch_hardware = false;
 bool bosch_ACC_allowed = false;
 bool honda_alt_brake_msg = false;
 bool honda_fwd_brake = false;
+enum {HONDA_N_HW, HONDA_BG_HW, HONDA_BH_HW} honda_hw = HONDA_N_HW;
 
+static uint8_t honda_get_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
+  int checksum_byte = GET_LEN(to_push) - 1;
+  return (uint8_t)(GET_BYTE(to_push, checksum_byte)) & 0xFU;
+}
+
+static uint8_t honda_compute_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
+  int len = GET_LEN(to_push);
+  uint8_t checksum = 0U;
+  unsigned int addr = GET_ADDR(to_push);
+  while (addr > 0U) {
+    checksum += (addr & 0xFU); addr >>= 4;
+  }
+  for (int j = 0; (j < len); j++) {
+    uint8_t byte = GET_BYTE(to_push, j);
+    checksum += (byte & 0xFU) + (byte >> 4U);
+    if (j == (len - 1)) {
+      checksum -= (byte & 0xFU);  // remove checksum in message
+    }
+  }
+  return (8U - checksum) & 0xFU;
+}
+
+static uint8_t honda_get_counter(CAN_FIFOMailBox_TypeDef *to_push) {
+  int counter_byte = GET_LEN(to_push) - 1;
+  return ((uint8_t)(GET_BYTE(to_push, counter_byte)) >> 4U) & 0x3U;
+}
 
 const int HONDA_MAX_STEER = 9192;          // TODO: some vehicles have a lower max
 // real time torque limit to prevent controls spamming
@@ -38,41 +81,44 @@ uint32_t honda_ts_last = 0;
 struct sample_t honda_torque_driver;         // last few driver torques measured
 
 
-static void honda_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
+static int honda_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
-  int addr = GET_ADDR(to_push);
-  int len = GET_LEN(to_push);
-  int bus = GET_BUS(to_push);
-
-  // sample torque
-  if (addr == 0x18F) {
-    int torque_driver_new = (GET_BYTE(to_push, 0) << 8) | GET_BYTE(to_push, 1);
-    torque_driver_new = to_signed(torque_driver_new, 16);
-    // update array of samples
-    update_sample(&honda_torque_driver, torque_driver_new);
-  }
-  // sample speed
-  if (addr == 0x158) {
-    // first 2 bytes
-    honda_moving = GET_BYTE(to_push, 0) | GET_BYTE(to_push, 1);
+  bool valid;
+  if (honda_hw == HONDA_BH_HW) {
+    valid = addr_safety_check(to_push, honda_bh_rx_checks, HONDA_BH_RX_CHECKS_LEN,
+                              honda_get_checksum, honda_compute_checksum, honda_get_counter);
+  } else {
+    valid = addr_safety_check(to_push, honda_rx_checks, HONDA_RX_CHECKS_LEN,
+                              honda_get_checksum, honda_compute_checksum, honda_get_counter);
   }
 
-  // state machine to enter and exit controls
-  // 0x1A6 for the ILX, 0x296 for the Civic Touring
-  if ((addr == 0x1A6) || (addr == 0x296)) {
-    int button = (GET_BYTE(to_push, 0) & 0xE0) >> 5;
-    switch (button) {
-      case 2:  // cancel
-        controls_allowed = 0;
-        break;
-      case 3:  // set
-      case 4:  // resume
-        controls_allowed = 1;
-        break;
-      default:
-        break; // any other button is irrelevant
+  if (valid) {
+    int addr = GET_ADDR(to_push);
+    int len = GET_LEN(to_push);
+    int bus = GET_BUS(to_push);
+
+    // sample speed
+    if (addr == 0x158) {
+      // first 2 bytes
+      honda_moving = GET_BYTE(to_push, 0) | GET_BYTE(to_push, 1);
     }
-  }
+
+    // state machine to enter and exit controls
+    // 0x1A6 for the ILX, 0x296 for the Civic Touring
+    if ((addr == 0x1A6) || (addr == 0x296)) {
+      int button = (GET_BYTE(to_push, 0) & 0xE0) >> 5;
+      switch (button) {
+        case 2:  // cancel
+          controls_allowed = 0;
+          break;
+        case 3:  // set
+        case 4:  // resume
+          controls_allowed = 1;
+          break;
+        default:
+          break; // any other button is irrelevant
+      }
+    }
 
   // user brake signal on 0x17C reports applied brake from computer brake on accord
   // and crv, which prevents the usual brake safety from working correctly. these
@@ -132,8 +178,8 @@ static void honda_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   // that the relay might be malfunctioning
   int bus_rdr_car = (board_has_relay()) ? 0 : 2;  // radar bus, car side
   if ((safety_mode_cnt > RELAY_TRNS_TIMEOUT) && ((addr == 0xE4) || (addr == 0x194))) {
-    if ((honda_bosch_hardware && (bus == bus_rdr_car)) ||
-      (!honda_bosch_hardware && (bus == 0))) {
+    if ((honda_hw && (bus == bus_rdr_car)) ||
+      (!honda_hw && (bus == 0))) {
       relay_malfunction = true;
     }
   }
@@ -151,16 +197,12 @@ static int honda_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   int addr = GET_ADDR(to_send);
   int bus = GET_BUS(to_send);
 
-  if (honda_bosch_hardware) {
-    if (board_has_relay() && !addr_allowed(addr, bus, HONDA_BH_TX_MSGS, sizeof(HONDA_BH_TX_MSGS)/sizeof(HONDA_BH_TX_MSGS[0]))) {
-      tx = 0;
-    }
-    if (!board_has_relay() && !addr_allowed(addr, bus, HONDA_BG_TX_MSGS, sizeof(HONDA_BG_TX_MSGS)/sizeof(HONDA_BG_TX_MSGS[0]))) {
-      tx = 0;
-    }
-  }
-  if (!honda_bosch_hardware && !addr_allowed(addr, bus, HONDA_N_TX_MSGS, sizeof(HONDA_N_TX_MSGS)/sizeof(HONDA_N_TX_MSGS[0]))) {
-    tx = 0;
+  if (honda_hw == HONDA_BG_HW) {
+    tx = msg_allowed(addr, bus, HONDA_BG_TX_MSGS, sizeof(HONDA_BG_TX_MSGS)/sizeof(HONDA_BG_TX_MSGS[0]));
+  } else if (honda_hw == HONDA_BH_HW) {
+    tx = msg_allowed(addr, bus, HONDA_BH_TX_MSGS, sizeof(HONDA_BH_TX_MSGS)/sizeof(HONDA_BH_TX_MSGS[0]));
+  } else {
+    tx = msg_allowed(addr, bus, HONDA_N_TX_MSGS, sizeof(HONDA_N_TX_MSGS)/sizeof(HONDA_N_TX_MSGS[0]));
   }
 
   if (relay_malfunction) {
@@ -191,7 +233,7 @@ static int honda_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 
   // STEER: safety check
   if ((addr == 0xE4) || (addr == 0x194)) {
-    bosch_ACC_allowed = honda_bosch_hardware && (addr == 0xE4);
+    bosch_ACC_allowed = honda_hw && (addr == 0xE4);
     int desired_torque = (GET_BYTE(to_send, 0) << 8) | GET_BYTE(to_send, 1);
     desired_torque = to_signed(desired_torque, 16);
     bool violation = 0;
@@ -250,8 +292,8 @@ static int honda_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   // FORCE CANCEL: safety check only relevant when spamming the cancel button in Bosch HW
   // ensuring that only the cancel button press is sent (VAL 2) when controls are off.
   // This avoids unintended engagements while still allowing resume spam
-  int bus_pt = ((board_has_relay()) && honda_bosch_hardware)? 1 : 0;
-  if ((addr == 0x296) && honda_bosch_hardware &&
+  int bus_pt = ((board_has_relay()) && honda_hw)? 1 : 0;
+  if ((addr == 0x296) && honda_hw &&
       !current_controls_allowed && (bus == bus_pt)) {
     if (((GET_BYTE(to_send, 0) >> 5) & 0x7) != 2) {
       tx = 0;
@@ -266,14 +308,22 @@ static void honda_init(int16_t param) {
   UNUSED(param);
   controls_allowed = false;
   relay_malfunction = false;
-  honda_bosch_hardware = false;
+  honda_hw = HONDA_N_HW;
   honda_alt_brake_msg = false;
 }
 
 static void honda_bosch_init(int16_t param) {
   controls_allowed = false;
   relay_malfunction = false;
-  honda_bosch_hardware = true;
+  honda_hw = HONDA_BG_HW;
+  // Checking for alternate brake override from safety parameter
+  honda_alt_brake_msg = (param == 1) ? true : false;
+}
+
+static void honda_bosch_harness_init(int16_t param) {
+  controls_allowed = false;
+  relay_malfunction = false;
+  honda_hw = HONDA_BH_HW;
   // Checking for alternate brake override from safety parameter
   honda_alt_brake_msg = (param == 1) ? true : false;
 }
@@ -326,18 +376,32 @@ static int honda_bosch_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   return bus_fwd;
 }
 
-const safety_hooks honda_hooks = {
-  .init = honda_init,
+const safety_hooks honda_nidec_hooks = {
+  .init = honda_nidec_init,
   .rx = honda_rx_hook,
   .tx = honda_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
-  .fwd = honda_fwd_hook,
+  .fwd = honda_nidec_fwd_hook,
+  .addr_check = honda_rx_checks,
+  .addr_check_len = sizeof(honda_rx_checks) / sizeof(honda_rx_checks[0]),
 };
 
-const safety_hooks honda_bosch_hooks = {
-  .init = honda_bosch_init,
+const safety_hooks honda_bosch_giraffe_hooks = {
+  .init = honda_bosch_giraffe_init,
   .rx = honda_rx_hook,
   .tx = honda_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
   .fwd = honda_bosch_fwd_hook,
+  .addr_check = honda_rx_checks,
+  .addr_check_len = sizeof(honda_rx_checks) / sizeof(honda_rx_checks[0]),
+};
+
+const safety_hooks honda_bosch_harness_hooks = {
+  .init = honda_bosch_harness_init,
+  .rx = honda_rx_hook,
+  .tx = honda_tx_hook,
+  .tx_lin = nooutput_tx_lin_hook,
+  .fwd = honda_bosch_fwd_hook,
+  .addr_check = honda_bh_rx_checks,
+  .addr_check_len = sizeof(honda_bh_rx_checks) / sizeof(honda_bh_rx_checks[0]),
 };

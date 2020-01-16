@@ -1,6 +1,7 @@
 from cereal import car
 from selfdrive.car import dbc_dict
 
+Ecu = car.CarParams.Ecu
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
 # Car button codes
@@ -18,28 +19,18 @@ class CruiseSettings:
   BUTTON_ONE      = 1
   RESET           = 0
 
-class AH:
-  #[alert_idx, value]
-  # See dbc files for info on values"
-  NONE           = [0, 0]
-  FCW            = [1, 1]
-  STEER          = [2, 1]
-  BRAKE_PRESSED  = [3, 10]
-  GEAR_NOT_D     = [4, 6]
-  SEATBELT       = [5, 5]
-  SPEED_TOO_HIGH = [6, 8]
-
+# See dbc files for info on values"
 VISUAL_HUD = {
-  VisualAlert.none: AH.NONE,
-  VisualAlert.fcw: AH.FCW,
-  VisualAlert.steerRequired: AH.STEER,
-  VisualAlert.brakePressed: AH.BRAKE_PRESSED,
-  VisualAlert.wrongGear: AH.GEAR_NOT_D,
-  VisualAlert.seatbeltUnbuckled: AH.SEATBELT,
-  VisualAlert.speedTooHigh: AH.SPEED_TOO_HIGH}
+  VisualAlert.none: 0,
+  VisualAlert.fcw: 1,
+  VisualAlert.steerRequired: 1,
+  VisualAlert.brakePressed: 10,
+  VisualAlert.wrongGear: 6,
+  VisualAlert.seatbeltUnbuckled: 5,
+  VisualAlert.speedTooHigh: 8}
 
 class ECU:
-  CAM = 0
+  CAM = Ecu.fwdCamera
 
 class CAR:
   ACCORD = "HONDA ACCORD 2018 SPORT 2T"
@@ -152,6 +143,36 @@ for c in FINGERPRINTS:
   for f, _ in enumerate(FINGERPRINTS[c]):
     for d in DIAG_MSGS:
       FINGERPRINTS[c][f][d] = DIAG_MSGS[d]
+
+# TODO: Figure out what is relevant
+FW_VERSIONS = {
+  CAR.CIVIC: {
+    (Ecu.unknown, 0x18da10f1, None): [b'37805-5AA-L660\x00\x00'],
+    (Ecu.unknown, 0x18da1ef1, None): [b'28101-5CG-A050\x00\x00'],
+    (Ecu.unknown, 0x18da28f1, None): [b'57114-TBA-A550\x00\x00'],
+    (Ecu.eps, 0x18da30f1, None): [b'39990-TBA-A030\x00\x00', b'39990-TBA,A030\x00\x00'],
+    (Ecu.unknown, 0x18da53f1, None): [b'77959-TBA-A030\x00\x00'],
+    (Ecu.unknown, 0x18da60f1, None): [b'78109-TBC-A310\x00\x00'],
+    (Ecu.unknown, 0x18dab0f1, None): [b'36161-TBC-A030\x00\x00'],
+    (Ecu.unknown, 0x18daeff1, None): [b'38897-TBA-A020\x00\x00'],
+
+  },
+  CAR.ACCORD: {
+    (Ecu.unknown, 0x18da10f1, None): [b'37805-6B2-A650\x00\x00'],
+    (Ecu.unknown, 0x18da0bf1, None): [b'54008-TVC-A910\x00\x00'],
+    (Ecu.unknown, 0x18da1ef1, None): [b'28102-6B8-A560\x00\x00'],
+    (Ecu.unknown, 0x18da2bf1, None): [b'46114-TVA-A060\x00\x00'],
+    (Ecu.unknown, 0x18da28f1, None): [b'57114-TVA-C050\x00\x00'],
+    (Ecu.eps, 0x18da30f1, None): [b'39990-TVA-A150\x00\x00'],
+    (Ecu.unknown, 0x18da3af1, None): [b'39390-TVA-A020\x00\x00'],
+    (Ecu.unknown, 0x18da53f1, None): [b'77959-TVA-A460\x00\x00'],
+    (Ecu.unknown, 0x18da60f1, None): [b'78109-TVC-A210\x00\x00'],
+    (Ecu.unknown, 0x18da61f1, None): [b'78209-TVA-A010\x00\x00'],
+    (Ecu.unknown, 0x18dab0f1, None): [b'36802-TVA-A160\x00\x00'],
+    (Ecu.unknown, 0x18dab5f1, None): [b'36161-TVA-A060\x00\x00'],
+    (Ecu.unknown, 0x18daeff1, None): [b'38897-TVA-A010\x00\x00'],
+  }
+}
 
 DBC = {
   CAR.ACCORD: dbc_dict('honda_accord_s2t_2018_can_generated', None),

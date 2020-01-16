@@ -81,6 +81,13 @@ ALERTS = [
       Priority.HIGHEST, VisualAlert.fcw, AudibleAlert.chimeWarningRepeat, 1., 2., 2.),
 
   Alert(
+      "fcwStock",
+      "BRAKE!",
+      "Risk of Collision",
+      AlertStatus.critical, AlertSize.full,
+      Priority.HIGHEST, VisualAlert.fcw, AudibleAlert.none, 1., 2., 2.),  # no EON chime for stock FCW
+
+  Alert(
       "steerSaturated",
       "TAKE CONTROL",
       "Turn Exceeds Steering Limit",
@@ -418,6 +425,13 @@ ALERTS = [
       Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .1, 2., 2.),
 
   Alert(
+      "radarCommIssue",
+      "TAKE CONTROL IMMEDIATELY",
+      "Radar Communication Issue",
+      AlertStatus.critical, AlertSize.full,
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .1, 2., 2.),
+
+  Alert(
       "radarCanError",
       "TAKE CONTROL IMMEDIATELY",
       "Radar Error: Restart the Car",
@@ -452,7 +466,7 @@ ALERTS = [
       "TAKE CONTROL IMMEDIATELY",
       "Controls Mismatch",
       AlertStatus.critical, AlertSize.full,
-      Priority.HIGHEST, VisualAlert.steerRequired, AudibleAlert.none, 2.2, 3., 4.),
+      Priority.HIGHEST, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, 2.2, 3., 4.),
 
   Alert(
       "canError",
@@ -667,7 +681,14 @@ ALERTS = [
       Priority.LOW, VisualAlert.none, AudibleAlert.chimeDisengage, .4, 2., 3.),
 
   Alert(
-      "internetConnectivityNeededNoEntry",
+      "radarCommIssueNoEntry",
+      "openpilot Unavailable",
+      "Radar Communication Issue",
+      AlertStatus.normal, AlertSize.mid,
+      Priority.LOW, VisualAlert.none, AudibleAlert.chimeDisengage, .4, 2., 3.),
+
+  Alert(
+      "lowMemoryNoEntry",
       "openpilot Unavailable",
       "Please Connect to Internet",
       AlertStatus.normal, AlertSize.mid,
@@ -746,8 +767,15 @@ ALERTS = [
 
   Alert(
       "lowMemoryPermanent",
-      "RAM Memory Critically Low",
+      "RAM Critically Low",
       "Reboot your EON",
+      AlertStatus.normal, AlertSize.mid,
+      Priority.LOW_LOWEST, VisualAlert.none, AudibleAlert.none, 0., 0., .2),
+
+  Alert(
+      "carUnrecognizedPermanent",
+      "Dashcam Mode",
+      "Car Unrecognized",
       AlertStatus.normal, AlertSize.mid,
       Priority.LOW_LOWEST, VisualAlert.none, AudibleAlert.none, 0., 0., .2),
 
