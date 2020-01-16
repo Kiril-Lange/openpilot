@@ -32,17 +32,6 @@ static void set_brightness(UIState *s, int brightness) {
   }
 }
 
-static void get_ip_addr(UIState *s) {
-  FILE *op = popen("ip route get 1.2 | awk '{print $7}' | sed ':a;N;$!ba;s/\n//g'", "r");
-  char var[64];
-  while (fgets(var, sizeof(var), op) != NULL) {
-    printf("%s", var);
-  }
-  pclose(op);
-  snprintf(s->ip_address, sizeof(s->ip_address), "%s", var);
-  s->ip_address[0] = '\0';
-}
-
 static void set_awake(UIState *s, bool awake) {
 #ifdef QCOM
   if (awake) {
@@ -151,7 +140,6 @@ static void ui_init(UIState *s) {
   assert(s->fb);
 
   set_awake(s, true);
-  get_ip_addr(s);
 
   s->model_changed = false;
   s->livempc_or_radarstate_changed = false;
@@ -595,7 +583,6 @@ static void ui_update(UIState *s) {
       if (msg == NULL) continue;
 
       set_awake(s, true);
-      get_ip_addr(s);
 
       handle_message(s, msg);
 
@@ -872,7 +859,6 @@ int main(int argc, char* argv[]) {
         int touched = touch_read(&touch, &touch_x, &touch_y);
         if (touched == 1) {
           set_awake(s, true);
-          get_ip_addr(s);
         }
       }
       if (s->status != STATUS_STOPPED) {
@@ -965,7 +951,6 @@ int main(int argc, char* argv[]) {
   }
 
   set_awake(s, true);
-  get_ip_addr(s);
   ui_sound_destroy();
 
   // wake up bg thread to exit
