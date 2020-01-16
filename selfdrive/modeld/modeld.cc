@@ -236,6 +236,7 @@ int main(int argc, char **argv) {
   visionstream_destroy(&stream);
 
   delete model_sock;
+  
   model_free(&model);
 
   LOG("joining live_thread");
