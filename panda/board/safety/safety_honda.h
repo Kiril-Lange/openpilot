@@ -33,7 +33,7 @@ bool honda_brake_pressed_prev = false;
 bool honda_moving = false;
 bool honda_alt_brake_msg = false;
 bool honda_fwd_brake = false;
-bool bosch_ACC_allowed = false;
+bool bosch_ACC_allowed = true;
 enum {HONDA_N_HW, HONDA_BG_HW, HONDA_BH_HW} honda_hw = HONDA_N_HW;
 
 
@@ -217,7 +217,7 @@ static int honda_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 
   // STEER: safety check
   if ((addr == 0xE4) || (addr == 0x194)) {
-    bosch_ACC_allowed = honda_hw && (addr == 0xE4);
+    bosch_ACC_allowed = (honda_hw == HONDA_BG_HW) && (addr == 0xE4);
     if (!current_controls_allowed) {
       bool steer_applied = GET_BYTE(to_send, 0) | GET_BYTE(to_send, 1);
       if (steer_applied) {
