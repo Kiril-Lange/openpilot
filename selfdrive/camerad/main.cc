@@ -456,6 +456,7 @@ void* processing_thread(void *arg) {
     if (cnt % 100 == 3) {
       uint8_t* thumbnail_buffer = NULL;
       uint64_t thumbnail_len = 0;
+
       unsigned char *row = (unsigned char *)malloc(s->rgb_width/4*3);
 
       struct jpeg_compress_struct cinfo;

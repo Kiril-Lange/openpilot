@@ -254,38 +254,6 @@ bool usb_connect() {
     }
   }
 
-  if (hw_type == cereal::HealthData::HwType::UNO){
-    // Get time from system
-    time_t rawtime;
-    time(&rawtime);
-
-    struct tm * sys_time = gmtime(&rawtime);
-
-    // Get time from RTC
-    timestamp_t rtc_time;
-    libusb_control_transfer(dev_handle, 0xc0, 0xa0, 0, 0, (unsigned char*)&rtc_time, sizeof(rtc_time), TIMEOUT);
-
-    //printf("System: %d-%d-%d\t%d:%d:%d\n", 1900 + sys_time->tm_year, 1 + sys_time->tm_mon, sys_time->tm_mday, sys_time->tm_hour, sys_time->tm_min, sys_time->tm_sec);
-    //printf("RTC: %d-%d-%d\t%d:%d:%d\n", rtc_time.year, rtc_time.month, rtc_time.day, rtc_time.hour, rtc_time.minute, rtc_time.second);
-
-    // Update system time from RTC if it looks off, and RTC time is good
-    if (1900 + sys_time->tm_year < 2019 && rtc_time.year >= 2019){
-      LOGE("System time wrong, setting from RTC");
-
-      struct tm new_time = { 0 };
-      new_time.tm_year = rtc_time.year - 1900;
-      new_time.tm_mon  = rtc_time.month - 1;
-      new_time.tm_mday = rtc_time.day;
-      new_time.tm_hour = rtc_time.hour;
-      new_time.tm_min  = rtc_time.minute;
-      new_time.tm_sec  = rtc_time.second;
-
-      setenv("TZ","UTC",1);
-      const struct timeval tv = {mktime(&new_time), 0};
-      settimeofday(&tv, 0);
-    }
-  }
-
   return true;
 fail:
   return false;
@@ -432,29 +400,6 @@ void can_health(PubSocket *publisher) {
     system("service call power 17 i32 0 i32 1");
   }
   if (!no_ignition_exp && (voltage_f > VBATT_START_CHARGING) && !cdp_mode) {
-    printf("TURN ON CHARGING!\n");
-    pthread_mutex_lock(&usb_lock);
-    libusb_control_transfer(dev_handle, 0xc0, 0xe6, (uint16_t)(cereal::HealthData::UsbPowerMode::CDP), 0, NULL, 0, TIMEOUT);
-    pthread_mutex_unlock(&usb_lock);
-  }
-  // set power save state enabled when car is off and viceversa when it's on
-  if (ignition && (health.power_save_enabled == 1)) {
-    pthread_mutex_lock(&usb_lock);
-    libusb_control_transfer(dev_handle, 0xc0, 0xe7, 0, 0, NULL, 0, TIMEOUT);
-    pthread_mutex_unlock(&usb_lock);
-  }
-  if (!ignition && (health.power_save_enabled == 0)) {
-    pthread_mutex_lock(&usb_lock);
-    libusb_control_transfer(dev_handle, 0xc0, 0xe7, 1, 0, NULL, 0, TIMEOUT);
-    pthread_mutex_unlock(&usb_lock);
-  }
-  // set safety mode to NO_OUTPUT when car is off. ELM327 is an alternative if we want to leverage athenad/connect
-  if (!ignition && (health.safety_model != (uint8_t)(cereal::CarParams::SafetyModel::NO_OUTPUT))) {
-    pthread_mutex_lock(&usb_lock);
-    libusb_control_transfer(dev_handle, 0x40, 0xdc, (uint16_t)(cereal::CarParams::SafetyModel::NO_OUTPUT), 0, NULL, 0, TIMEOUT);
-    pthread_mutex_unlock(&usb_lock);
-  }
-  if (!no_ignition_exp && (health.voltage >  VBATT_START_CHARGING) && !cdp_mode) {
     printf("TURN ON CHARGING!\n");
     pthread_mutex_lock(&usb_lock);
     libusb_control_transfer(dev_handle, 0xc0, 0xe6, (uint16_t)(cereal::HealthData::UsbPowerMode::CDP), 0, NULL, 0, TIMEOUT);
