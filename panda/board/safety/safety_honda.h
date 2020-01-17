@@ -134,7 +134,7 @@ static int honda_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     if (!gas_interceptor_detected) {
       if (addr == 0x17C) {
         int gas = GET_BYTE(to_push, 0);
-        if (gas && !honda_gas_prev && !(honda_hw == HONDA_BG_HW)) {
+        if (gas && !honda_gas_prev && (!(honda_hw == HONDA_BG_HW) || !(honda_hw == HONDA_BH_HW))) {
           controls_allowed = 0;
         }
         honda_gas_prev = gas;
@@ -194,7 +194,7 @@ static int honda_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 
   // disallow actuator commands if gas or brake (with vehicle moving) are pressed
   // and the the latching controls_allowed flag is True
-  int pedal_pressed = (!(honda_hw == HONDA_BG_HW) && honda_gas_prev) || (gas_interceptor_prev > HONDA_GAS_INTERCEPTOR_THRESHOLD) ||
+  int pedal_pressed = ((!(honda_hw == HONDA_BG_HW) || !(honda_hw == HONDA_BH_HW)) && honda_gas_prev) || (gas_interceptor_prev > HONDA_GAS_INTERCEPTOR_THRESHOLD) ||
                       (honda_brake_pressed_prev && honda_moving);
   bool current_controls_allowed = controls_allowed && !(pedal_pressed);
 
@@ -227,7 +227,7 @@ static int honda_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   // GAS: safety check
   if (addr == 0x200) {
     if (!current_controls_allowed) {
-      if (!(honda_hw == HONDA_BG_HW) && (GET_BYTE(to_send, 0) || GET_BYTE(to_send, 1))) {
+      if ((!(honda_hw == HONDA_BG_HW) || !(honda_hw == HONDA_BH_HW)) && (GET_BYTE(to_send, 0) || GET_BYTE(to_send, 1))) {
         tx = 0;
       }
     }
