@@ -88,11 +88,6 @@ class CarControllerParams():
       self.STEER_MAX = 0x7FFF
     else:
       self.STEER_MAX = 0x1000
-    self.STEER_DELTA_UP = 27           # torque increase per refresh, 1.517s to max
-    self.STEER_DELTA_DOWN = 68         # torque decrease per refresh
-    self.STEER_DRIVER_ALLOWANCE = 1600 # allowed driver torque before start limiting
-    self.STEER_DRIVER_MULTIPLIER = 1   # weight driver torque heavily
-    self.STEER_DRIVER_FACTOR = 1       # from dbc
 
 class CarController():
   def __init__(self, dbc_name, CP):
