@@ -113,7 +113,7 @@ static int honda_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     bool is_user_brake_msg = honda_alt_brake_msg ? ((addr) == 0x1BE) : ((addr) == 0x17C);
     if (is_user_brake_msg) {
       bool brake_pressed = honda_alt_brake_msg ? (GET_BYTE((to_push), 0) & 0x10) : (GET_BYTE((to_push), 6) & 0x20);
-      if (brake_pressed && (!(honda_brake_pressed_prev) && (!bosch_ACC_allowed) || honda_moving)) {
+      if (brake_pressed && (!(honda_brake_pressed_prev) && (!honda_ACC_allowed) || honda_moving)) {
         controls_allowed = 0;
       }
       honda_brake_pressed_prev = brake_pressed;
@@ -195,7 +195,7 @@ static int honda_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 
   // disallow actuator commands if gas or brake (with vehicle moving) are pressed
   // and the the latching controls_allowed flag is True
-  int pedal_pressed = (!bosch_ACC_allowed && honda_gas_prev) || (gas_interceptor_prev > HONDA_GAS_INTERCEPTOR_THRESHOLD) ||
+  int pedal_pressed = (!honda_ACC_allowed && honda_gas_prev) || (gas_interceptor_prev > HONDA_GAS_INTERCEPTOR_THRESHOLD) ||
                       (honda_brake_pressed_prev && honda_moving);
   bool current_controls_allowed = controls_allowed && !(pedal_pressed);
 
@@ -217,7 +217,7 @@ static int honda_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 
   // STEER: safety check
   if ((addr == 0xE4) || (addr == 0x194)) {
-    bosch_ACC_allowed = (honda_hw == HONDA_BG_HW) && (addr == 0xE4);
+    honda_ACC_allowed = (honda_hw == HONDA_BG_HW) && (addr == 0xE4);
     if (!current_controls_allowed) {
       bool steer_applied = GET_BYTE(to_send, 0) | GET_BYTE(to_send, 1);
       if (steer_applied) {
@@ -229,7 +229,7 @@ static int honda_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   // GAS: safety check
   if (addr == 0x200) {
     if (!current_controls_allowed) {
-      if (!bosch_ACC_allowed && (GET_BYTE(to_send, 0) || GET_BYTE(to_send, 1))) {
+      if (!honda_ACC_allowed && (GET_BYTE(to_send, 0) || GET_BYTE(to_send, 1))) {
         tx = 0;
       }
     }
@@ -257,7 +257,7 @@ static void honda_nidec_init(int16_t param) {
   honda_alt_brake_msg = false;
 }
 
-static void honda_bosch_giraffe_init(int16_t param) {
+static void honda_honda_giraffe_init(int16_t param) {
   controls_allowed = false;
   relay_malfunction = false;
   honda_hw = HONDA_BG_HW;
@@ -265,7 +265,7 @@ static void honda_bosch_giraffe_init(int16_t param) {
   honda_alt_brake_msg = (param == 1) ? true : false;
 }
 
-static void honda_bosch_harness_init(int16_t param) {
+static void honda_honda_harness_init(int16_t param) {
   controls_allowed = false;
   relay_malfunction = false;
   honda_hw = HONDA_BH_HW;
@@ -298,7 +298,7 @@ static int honda_nidec_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   return bus_fwd;
 }
 
-static int honda_bosch_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
+static int honda_honda_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   int bus_fwd = -1;
   int bus_rdr_cam = (honda_hw == HONDA_BH_HW) ? 2 : 1;  // radar bus, camera side
   int bus_rdr_car = (honda_hw == HONDA_BH_HW) ? 0 : 2;  // radar bus, car side
@@ -328,22 +328,22 @@ const safety_hooks honda_nidec_hooks = {
   .addr_check_len = sizeof(honda_rx_checks) / sizeof(honda_rx_checks[0]),
 };
 
-const safety_hooks honda_bosch_giraffe_hooks = {
-  .init = honda_bosch_giraffe_init,
+const safety_hooks honda_honda_giraffe_hooks = {
+  .init = honda_honda_giraffe_init,
   .rx = honda_rx_hook,
   .tx = honda_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
-  .fwd = honda_bosch_fwd_hook,
+  .fwd = honda_honda_fwd_hook,
   .addr_check = honda_rx_checks,
   .addr_check_len = sizeof(honda_rx_checks) / sizeof(honda_rx_checks[0]),
 };
 
-const safety_hooks honda_bosch_harness_hooks = {
-  .init = honda_bosch_harness_init,
+const safety_hooks honda_honda_harness_hooks = {
+  .init = honda_honda_harness_init,
   .rx = honda_rx_hook,
   .tx = honda_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
-  .fwd = honda_bosch_fwd_hook,
+  .fwd = honda_honda_fwd_hook,
   .addr_check = honda_bh_rx_checks,
   .addr_check_len = sizeof(honda_bh_rx_checks) / sizeof(honda_bh_rx_checks[0]),
 };
