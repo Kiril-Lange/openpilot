@@ -74,20 +74,8 @@ def process_hud_alert(hud_alert):
 
 
 HUDData = namedtuple("HUDData",
-                     ["pcm_accel", "v_cruise", "mini_car", "car", "X4",
+                     ["pcm_accel", "v_cruise", "car",
                       "lanes", "fcw", "acc_alert", "steer_required", "dist_lines", "dashed_lanes"])
-
-class CarControllerParams():
-  def __init__(self, car_fingerprint):
-    self.BRAKE_MAX = 1024//4
-    if car_fingerprint in (CAR.ACURA_ILX):
-      self.STEER_MAX = 0xF00
-    elif car_fingerprint in (CAR.CRV, CAR.ACURA_RDX):
-      self.STEER_MAX = 0x3e8  # CR-V only uses 12-bits and requires a lower value (max value from energee)
-    elif car_fingerprint in (CAR.ODYSSEY_CHN):
-      self.STEER_MAX = 0x7FFF
-    else:
-      self.STEER_MAX = 0x1000
 
 class CarController():
   def __init__(self, dbc_name, CP):
@@ -105,7 +93,6 @@ class CarController():
     self.lead_distance_counter_prev = 1
     self.rough_lead_speed = 0.0 #delta m/s
     self.desiredTR = 0 # the desired distance bar
-    self.params = CarControllerParams(CP)
     self.eps_modified = False
     for fw in CP.carFw:
       if fw.ecu == "eps" and b"," in fw.fwVersion:
@@ -193,7 +180,6 @@ class CarController():
   def update(self, enabled, CS, frame, actuators, \
              pcm_speed, pcm_override, pcm_cancel_cmd, pcm_accel, \
              hud_v_cruise, hud_show_lanes, hud_show_car, hud_alert):
-    P = self.params
     # *** apply brake hysteresis ***
     brake, self.braking, self.brake_steady = actuator_hystereses(actuators.brake, self.braking, self.brake_steady, CS.v_ego, CS.CP.carFingerprint)
 
@@ -241,9 +227,8 @@ class CarController():
 
     # steer torque is converted back to CAN reference (positive when steering right)
     apply_gas = clip(actuators.gas, 0., 1.)
-    apply_brake = int(clip(self.brake_last * P.BRAKE_MAX, 0, P.BRAKE_MAX - 1))
-    apply_steer = -actuators.steer * P.STEER_MAX
-    apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steer_torque_driver, P)
+    apply_brake = int(clip(self.brake_last * BRAKE_MAX, 0, BRAKE_MAX - 1))
+    apply_steer = int(clip(-actuators.steer * STEER_MAX, -STEER_MAX, STEER_MAX))
     self.apply_steer_last = apply_steer
 
     if CS.CP.carFingerprint in (CAR.CIVIC) and self.eps_modified:
