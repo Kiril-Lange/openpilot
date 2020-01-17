@@ -45,10 +45,7 @@ struct __attribute__((packed)) health_t {
   uint32_t uptime_pkt;
   uint32_t voltage_pkt;
   uint32_t current_pkt;
-<<<<<<< HEAD
-=======
   uint32_t can_rx_errs_pkt;
->>>>>>> comma/nightly
   uint32_t can_send_errs_pkt;
   uint32_t can_fwd_errs_pkt;
   uint32_t gmlan_send_errs_pkt;
@@ -670,11 +667,7 @@ void __attribute__ ((noinline)) enable_fpu(void) {
 #define EON_HEARTBEAT_IGNITION_CNT_ON 5U
 #define EON_HEARTBEAT_IGNITION_CNT_OFF 2U
 
-<<<<<<< HEAD
-// called once per second
-=======
 // called at 1Hz
->>>>>>> comma/nightly
 void TIM1_BRK_TIM9_IRQ_Handler(void) {
   if (TIM9->SR != 0) {
     can_live = pending_can_live;
@@ -743,12 +736,9 @@ void TIM1_BRK_TIM9_IRQ_Handler(void) {
     uptime_cnt += 1U;
     safety_mode_cnt += 1U;
     ignition_can_cnt += 1U;
-<<<<<<< HEAD
-=======
 
     // synchronous safety check
     safety_tick(current_hooks);
->>>>>>> comma/nightly
   }
   TIM9->SR = 0;
 }

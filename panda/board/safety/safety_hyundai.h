@@ -14,7 +14,6 @@ AddrCheckStruct hyundai_rx_checks[] = {
 };
 const int HYUNDAI_RX_CHECK_LEN = sizeof(hyundai_rx_checks) / sizeof(hyundai_rx_checks[0]);
 
-
 int hyundai_rt_torque_last = 0;
 int hyundai_desired_torque_last = 0;
 int hyundai_cruise_engaged_last = 0;

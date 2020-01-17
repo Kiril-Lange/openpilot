@@ -433,6 +433,7 @@ class IsoTpMessage():
         # scale is 1 milliseconds if first bit == 0, 100 micro seconds if first bit == 1
         delay_div = 1000. if rx_data[2] & 0x80 == 0 else 10000.
         delay_sec = delay_ts / delay_div
+
         # first frame = 6 bytes, each consecutive frame = 7 bytes
         num_bytes = self.max_len - 1
         start = 6 + self.tx_idx * num_bytes
@@ -462,11 +463,13 @@ def get_rx_addr_for_tx_addr(tx_addr):
   if tx_addr < 0xFFF8:
     # standard 11 bit response addr (add 8)
     return tx_addr + 8
+
   if tx_addr > 0x10000000 and tx_addr < 0xFFFFFFFF:
     # standard 29 bit response addr (flip last two bytes)
     return (tx_addr & 0xFFFF0000) + (tx_addr<<8 & 0xFF00) + (tx_addr>>8 & 0xFF)
 
   raise ValueError("invalid tx_addr: {}".format(tx_addr))
+
 
 class UdsClient():
   def __init__(self, panda, tx_addr: int, rx_addr: int=None, bus: int=0, timeout: float=1, debug: bool=False):
@@ -730,6 +733,7 @@ class UdsClient():
     if dtc_report_type == DTC_REPORT_TYPE.NUMBER_OF_DTC_BY_SEVERITY_MASK_RECORD or \
       dtc_report_type == DTC_REPORT_TYPE.DTC_BY_SEVERITY_MASK_RECORD:
       data += bytes([dtc_severity_mask_type, dtc_status_mask_type])
+
     resp = self._uds_request(SERVICE_TYPE.READ_DTC_INFORMATION, subfunction=dtc_report_type, data=data)
 
     # TODO: parse response

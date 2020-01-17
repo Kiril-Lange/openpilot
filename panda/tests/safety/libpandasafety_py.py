@@ -30,8 +30,6 @@ typedef struct
   uint32_t CNT;
 } TIM_TypeDef;
 
-bool board_has_relay(void);
-
 void set_controls_allowed(bool c);
 bool get_controls_allowed(void);
 void set_relay_malfunction(bool c);
