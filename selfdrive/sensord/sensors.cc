@@ -55,6 +55,7 @@ void sigpipe_handler(int sig) {
 void sensor_loop() {
   LOG("*** sensor loop");
 
+
   while (!do_exit) {
     Context * c = Context::create();
     PubSocket * sensor_events_sock = PubSocket::create(c, "sensorEvents");
