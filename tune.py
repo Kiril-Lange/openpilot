@@ -134,18 +134,6 @@ while True:
     break
 
 
-  if float(kegman.conf['lane_hug_mod']) < 1:
-    kegman.conf['lane_hug_mod'] = "1"
-
-  if float(kegman.conf['lane_hug_mod']) > 2:
-    kegman.conf['lane_hug_mod'] = "2"
-
-  if int(kegman.conf['lane_hug_angle']) > 10:
-    kegman.conf['lane_hug_angle'] = "10"
-
-  if int(kegman.conf['lane_hug_angle']) < 0:
-    kegman.conf['lane_hug_angle'] = "0"
-
   if float(kegman.conf['tuneGernby']) != 1 and float(kegman.conf['tuneGernby']) != 0:
     kegman.conf['tuneGernby'] = "1"
 
