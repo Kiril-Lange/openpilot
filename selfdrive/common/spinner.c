@@ -61,7 +61,7 @@ int spin(int argc, char** argv) {
   EGLDisplay display;
   EGLSurface surface;
   FramebufferState *fb = framebuffer_init("spinner", 0x00001000, false,
-                     &display, &surface, &fb_w, &fb_h);
+                     &fb_w, &fb_h);
   assert(fb);
 
   NVGcontext *vg = nvgCreateGLES3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
