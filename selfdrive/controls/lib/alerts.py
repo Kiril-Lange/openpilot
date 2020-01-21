@@ -176,7 +176,7 @@ ALERTS = [
       "DRIVER MONITOR IS AVAILABLE",
       "Accuracy Is High",
       AlertStatus.normal, AlertSize.mid,
-      Priority.LOW, VisualAlert.none, AudibleAlert.none, .4, 0., 4.),
+      Priority.LOW, VisualAlert.none, AudibleAlert.none, .4, 0., 1.),
 
   Alert(
       "geofence",
