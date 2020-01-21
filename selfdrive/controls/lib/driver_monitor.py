@@ -161,8 +161,8 @@ class DriverStatus():
 
   def set_policy(self, model_data):
     ep = min(model_data.meta.engagedProb, 0.8) / 0.8
-    self.pose.cfactor = np.interp(ep, [0, 0.5, 1], [_METRIC_THRESHOLD_STRICT, _METRIC_THRESHOLD, _METRIC_THRESHOLD_SLACK])/_METRIC_THRESHOLD
-    self.blink.cfactor = np.interp(ep, [0, 0.5, 1], [_BLINK_THRESHOLD_STRICT, _BLINK_THRESHOLD, _BLINK_THRESHOLD_SLACK])/_BLINK_THRESHOLD
+    self.pose.cfactor = interp(ep, [0, 0.5, 1], [_METRIC_THRESHOLD_STRICT, _METRIC_THRESHOLD, _METRIC_THRESHOLD_SLACK])/_METRIC_THRESHOLD
+    self.blink.cfactor = interp(ep, [0, 0.5, 1], [_BLINK_THRESHOLD_STRICT, _BLINK_THRESHOLD, _BLINK_THRESHOLD_SLACK])/_BLINK_THRESHOLD
 
   def set_policy(self, model_data):
     ep = min(model_data.meta.engagedProb, 0.8) / 0.8

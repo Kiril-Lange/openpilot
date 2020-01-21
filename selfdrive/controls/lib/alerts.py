@@ -169,7 +169,7 @@ ALERTS = [
       "DRIVER MONITOR IS UNAVAILABLE",
       "Accuracy Is Low",
       AlertStatus.normal, AlertSize.mid,
-      Priority.LOW, VisualAlert.none, AudibleAlert.none, .4, 0., 4.),
+      Priority.LOW, VisualAlert.none, AudibleAlert.none, .4, 0., 1.),
 
   Alert(
       "driverMonitorOn",
