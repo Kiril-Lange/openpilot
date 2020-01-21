@@ -45,8 +45,8 @@ H, W, FULL_W = 320, 160, 426
 
 class DistractedType():
   NOT_DISTRACTED = 0
-  BAD_POSE = 1
-  BAD_BLINK = 2
+  BAD_POSE = 0
+  BAD_BLINK = 0
 
 def face_orientation_from_net(angles_desc, pos_desc, rpy_calib):
   # the output of these angles are in device frame
@@ -95,11 +95,11 @@ class DriverStatus():
     self.awareness_passive = 1.
     self.driver_distracted = False
     self.driver_distraction_filter = FirstOrderFilter(0., _DISTRACTED_FILTER_TS, DT_DMON)
-    self.face_detected = False
+    self.face_detected = True
     self.terminal_alert_cnt = 0
     self.terminal_time = 0
     self.step_change = 0.
-    self.active_monitoring_mode = True
+    self.active_monitoring_mode = False
     self.threshold_prompt = _DISTRACTED_PROMPT_TIME_TILL_TERMINAL / _DISTRACTED_TIME
 
     self.is_rhd_region = False
@@ -126,7 +126,7 @@ class DriverStatus():
       self.threshold_pre = _DISTRACTED_PRE_TIME_TILL_TERMINAL / _DISTRACTED_TIME
       self.threshold_prompt = _DISTRACTED_PROMPT_TIME_TILL_TERMINAL / _DISTRACTED_TIME
       self.step_change = DT_CTRL / _DISTRACTED_TIME
-      self.active_monitoring_mode = True
+      self.active_monitoring_mode = False
     else:
       if self.active_monitoring_mode:
         self.awareness_active = self.awareness
