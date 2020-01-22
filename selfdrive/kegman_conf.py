@@ -84,6 +84,12 @@ class kegman_conf():
         self.config.update({"leadDistance":"5"})
         self.element_updated = True
 
+      if "lane_hug_direction" not in self.config:
+        self.config.update({lane_hug_direction:"left"})
+        self.config.update({lane_hug_mod:"1.2"})
+        self.config.update({lane_hug_angle:"5"})
+        self.element_updated = True
+
       if "deadzone" not in self.config:
         self.config.update({"deadzone":"0.0"})
         self.element_updated = True
@@ -142,7 +148,7 @@ class kegman_conf():
 		     "3barBP1":"3.0", "1barMax":"2.1", "2barMax":"2.1", "3barMax":"2.1", \
 		     "1barHwy":"0.4", "2barHwy":"0.3", "3barHwy":"0.1", \
          "steerRatio":"-1", "steerRateCost":"-1", "slowOnCurves":"0", "Kf":"-1", "zorro_mod":"1", "shane_mod":"1", \
-                     "sR_boost": "4.5", "sR_BP0": "3.5", "sR_BP1": "10", "sR_time": "1.5", "simpledd":"0"}
+                     "sR_boost": "4.5", "sR_BP0": "3.5", "sR_BP1": "10", "sR_time": "1.5", "simpledd":"0", "lane_hug_direction":"left", "lane_hug_mod":"1.2", "lane_hug_angle":"5"}
 
       self.write_config(self.config)
     return self.config
