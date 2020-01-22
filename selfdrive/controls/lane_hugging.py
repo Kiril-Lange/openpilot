@@ -6,7 +6,7 @@ class LaneHugging:
   def __init__(self):
     self.kegman = kegman_conf()
     self.lane_hug_direction = str(self.kegman.conf['lane_hug_direction'])  # if lane hugging is present and which side. None, 'left', or 'right'
-    self.lane_hug_mod = round(float(self.kegman.conf['lane_hug_mod']), 1.2)  # how much to reduce angle by. float from 1.0 to 2.0
+    self.lane_hug_mod = float(self.kegman.conf['lane_hug_mod'])  # how much to reduce angle by. float from 1.0 to 2.0
     self.lane_hug_angle = max(int(self.kegman.conf['lane_hug_angle']), 5)  # where to end increasing angle modification. from 0 to this
 
   def init(self, angle_steers):
