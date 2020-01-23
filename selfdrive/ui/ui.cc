@@ -19,6 +19,7 @@
 #include "ui.hpp"
 #include "sound.hpp"
 
+
 static int last_brightness = -1;
 static void set_brightness(UIState *s, int brightness) {
   if (last_brightness != brightness && (s->awake || brightness == 0)) {
@@ -277,6 +278,7 @@ void handle_message(UIState *s, Message * msg) {
     }
     s->scene.v_cruise = datad.vCruise;
     s->scene.v_ego = datad.vEgo;
+    s->scene.angleSteers = datad.angleSteers;
     s->scene.curvature = datad.curvature;
     s->scene.engaged = datad.enabled;
     s->scene.engageable = datad.engageable;
@@ -423,6 +425,17 @@ void handle_message(UIState *s, Message * msg) {
     struct cereal_LiveMapData datad;
     cereal_read_LiveMapData(&datad, eventd.liveMapData);
     s->scene.map_valid = datad.mapValid;
+    s->scene.speedlimit = datad.speedLimit;
+    s->scene.speedlimitahead_valid = datad.speedLimitAheadValid;
+    s->scene.speedlimitaheaddistance = datad.speedLimitAheadDistance;
+    s->scene.speedlimit_valid = datad.speedLimitValid;
+  // getting thermal related data for dev ui
+  } else if (eventd.which == cereal_Event_thermal) {
+    struct cereal_ThermalData datad;
+    cereal_read_ThermalData(&datad, eventd.thermal);
+
+    s->scene.pa0 = datad.pa0;
+    s->scene.freeSpace = datad.freeSpace;
   }
   capn_free(&ctx);
 }
