@@ -223,7 +223,7 @@ class CarController():
     elif CS.CP.carFingerprint in (CAR.CIVIC) and self.eps_modified:
       STEER_MAX = 0x1400
     elif CS.CP.carFingerprint in (CAR.INSIGHT):
-      STEER_MAX = 0xA00
+      STEER_MAX = 0xB54
     else:
       STEER_MAX = 0x1000
 
