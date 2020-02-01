@@ -279,6 +279,7 @@ struct ThermalData {
   batteryCurrent @15 :Int32;
   batteryVoltage @16 :Int32;
   usbOnline @12 :Bool;
+  networkType @22 :NetworkType;
 
   fanSpeed @10 :UInt16;
   started @11 :Bool;
@@ -296,6 +297,15 @@ struct ThermalData {
     yellow @1;  # critical processes run (kill uploader), engage still allowed
     red @2;     # no engage, will disengage
     danger @3;  # immediate process shutdown
+  }
+
+  enum NetworkType {
+    none @0;
+    wifi @1;
+    cell2G @2;
+    cell3G @3;
+    cell4G @4;
+    cell5G @5;
   }
 }
 
@@ -1754,7 +1764,7 @@ struct OrbKeyFrame {
   descriptors @3 :Data;
 }
 
-struct DriverMonitoring {
+struct DriverState {
   frameId @0 :UInt32;
   descriptorDEPRECATED @1 :List(Float32);
   stdDEPRECATED @2 :Float32;
@@ -1889,7 +1899,7 @@ struct Event {
     orbKeyFrame @56 :OrbKeyFrame;
     uiLayoutState @57 :UiLayoutState;
     orbFeaturesSummary @58 :OrbFeaturesSummary;
-    driverMonitoring @59 :DriverMonitoring;
+    driverState @59 :DriverState;
     boot @60 :Boot;
     liveParameters @61 :LiveParametersData;
     liveMapData @62 :LiveMapData;
