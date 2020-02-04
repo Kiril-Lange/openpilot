@@ -19,7 +19,6 @@
 #include "ui.hpp"
 #include "sound.hpp"
 
-
 static int last_brightness = -1;
 static void set_brightness(UIState *s, int brightness) {
   if (last_brightness != brightness && (s->awake || brightness == 0)) {

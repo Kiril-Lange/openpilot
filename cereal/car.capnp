@@ -84,6 +84,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     laneChange @59;
     invalidGiraffeToyota @60;
     internetConnectivityNeeded @61;
+<<<<<<< HEAD
     manualSteeringRequired @62;
     manualSteeringRequiredBlinkersOn @63;
     communityFeatureDisallowed @64;
@@ -92,6 +93,17 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     ldw @67;
     carUnrecognized @68;
     radarCommIssue @69;
+=======
+    communityFeatureDisallowed @62;
+    lowMemory @63;
+    stockAeb @64;
+    ldw @65;
+    carUnrecognized @66;
+    radarCommIssue @67;
+    driverMonitorLowAcc @68;
+    manualSteeringRequired @68;
+    manualSteeringRequiredBlinkersOn @69;
+>>>>>>> 600f42ff... Openpilot v0.7.2
   }
 }
 
