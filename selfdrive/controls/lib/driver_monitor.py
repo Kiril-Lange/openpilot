@@ -1,7 +1,6 @@
 from common.numpy_fast import interp
 from math import atan2, sqrt
 from common.realtime import DT_DMON
->>>>>>> 600f42ff... Openpilot v0.7.2
 from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
 from common.filter_simple import FirstOrderFilter
 from common.stat_live import RunningStatFilter

@@ -19,6 +19,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
   immediateDisable @6 :Bool;
   preEnable @7 :Bool;
   permanent @8 :Bool;
+  resetVCruise @9 :Bool;
 
   enum EventName @0xbaa8c5d505f727de {
     # TODO: copy from error list
@@ -84,16 +85,6 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     laneChange @59;
     invalidGiraffeToyota @60;
     internetConnectivityNeeded @61;
-<<<<<<< HEAD
-    manualSteeringRequired @62;
-    manualSteeringRequiredBlinkersOn @63;
-    communityFeatureDisallowed @64;
-    lowMemory @65;
-    stockAeb @66;
-    ldw @67;
-    carUnrecognized @68;
-    radarCommIssue @69;
-=======
     communityFeatureDisallowed @62;
     lowMemory @63;
     stockAeb @64;
@@ -101,9 +92,8 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     carUnrecognized @66;
     radarCommIssue @67;
     driverMonitorLowAcc @68;
-    manualSteeringRequired @68;
-    manualSteeringRequiredBlinkersOn @69;
->>>>>>> 600f42ff... Openpilot v0.7.2
+    manualSteeringRequired @69;
+    manualSteeringRequiredBlinkersOn @70;
   }
 }
 
@@ -152,8 +142,8 @@ struct CarState {
   leftBlinker @20 :Bool;
   rightBlinker @21 :Bool;
   genericToggle @23 :Bool;
-  distanceToggle @32 :Float32;
-  laneDepartureToggle @33 :Bool;
+  distanceToggle @33 :Float32;
+  laneDepartureToggle @34 :Bool;
 
   # lock info
   doorOpen @24 :Bool;
@@ -164,7 +154,7 @@ struct CarState {
   # clutch (manual transmission only)
   clutchPressed @28 :Bool;
 
-  readdistancelines @34 :Float32;
+  readdistancelines @32 :Float32;
   lkMode @35 :Bool;
 
 

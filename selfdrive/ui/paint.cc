@@ -1267,7 +1267,6 @@ static const char frame_fragment_shader[] =
   "  gl_FragColor = texture2D(uTexture, vTexCoord.xy);\n"
   "}\n";
 #endif
->>>>>>> devel-0.7.2
 
 static const mat4 device_transform = {{
   1.0,  0.0, 0.0, 0.0,

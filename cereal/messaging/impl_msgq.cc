@@ -108,6 +108,7 @@ Message * MSGQSubSocket::receive(bool non_blocking){
     }
   }
 
+
   if (!non_blocking){
     std::signal(SIGINT, prev_handler_sigint);
     std::signal(SIGTERM, prev_handler_sigterm);
