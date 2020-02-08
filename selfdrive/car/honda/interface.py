@@ -353,7 +353,7 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2987. * CV.LB_TO_KG + STD_CARGO_KG
       ret.wheelbase = 2.7
       ret.centerToFront = ret.wheelbase * 0.39
-      ret.steerRatio = 12.58  # 12.58 is spec end-to-end
+      ret.steerRatio = 13.8  # 12.58 is spec end-to-end
       ret.steerRateCost = 0.5
       tire_stiffness_factor = 0.82
       if eps_modified:
@@ -370,7 +370,7 @@ class CarInterface(CarInterfaceBase):
       else:
         ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0x0, 0x746, 0xB04, 0xCDF, 0xE19, 0x1008, 0x1200], [0x0, 0x1E0, 0x2D0, 0x42F, 0x58B, 0x780, 0x95E]] # max request allowed is 4096, but above 2560 is flat
         # torque table goes up to 0x6EE but lookup function input is clamped at 67E therefore max request is 0xF00, but output is flat above 0x95E, so dont send higher
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.8], [0.24]]
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.54], [0.225]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
       ret.longitudinalTuning.kpV = [1.2, 0.8, 0.5]
       ret.longitudinalTuning.kiBP = [0., 35.]
