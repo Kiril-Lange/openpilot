@@ -19,12 +19,6 @@ void Localizer::update_state(const Eigen::Matrix<double, 1, 2> &C, const double 
     prev_update_time = current_time;
   }
 
-  A <<
-    1,  0, 0,  0,
-    0,  1,  0,  0,
-    0,  0,  1,  0,
-    0,  0,  0,  1;
-
   x = A * x;
   P = A * P * A.transpose() + dt * Q;
 
