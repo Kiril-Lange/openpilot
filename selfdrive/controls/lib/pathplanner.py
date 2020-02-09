@@ -74,9 +74,9 @@ class PathPlanner():
       self.steerRatio = float(kegman.conf['steerRatio'])
       
     if kegman.conf['steerRateCost'] == "-1":
-    self.steerRateCost = CP.steerRateCost
+      self.steerRateCost = CP.steerRateCost
     else:
-    self.steerRateCost = float(kegman.conf['steerRateCost'])
+      self.steerRateCost = float(kegman.conf['steerRateCost'])
       
     #self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost']))]
     #self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1'])]
