@@ -20,8 +20,6 @@
 #include "locationd_yawrate.h"
 #include "params_learner.h"
 
-#include "common/util.h"
-
 void sigpipe_handler(int sig) {
   LOGE("SIGPIPE received");
 }
