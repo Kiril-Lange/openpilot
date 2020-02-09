@@ -60,7 +60,7 @@ class PathPlanner():
     self.lane_change_timer = 0.0
     self.prev_one_blinker = False
 
-    self.mpc_frame = 0
+    #self.mpc_frame = 0
     #self.sR_delay_counter = 0
     #self.steerRatio_new = 0.0
     #self.sR_time = 1
@@ -138,7 +138,7 @@ class PathPlanner():
         #self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1'])]
         #self.sR_time = int(float(kegman.conf['sR_time'])) * 100
          
-      self.mpc_frame = 0
+      #self.mpc_frame = 0
     
     #if v_ego > 11.111:
       # boost steerRatio by boost amount if desired steer angle is high
