@@ -370,15 +370,7 @@ class CarInterface(CarInterfaceBase):
       else:
         ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0x0, 0x746, 0xB04, 0xCDF, 0xE19, 0x1008, 0x1200], [0x0, 0x1E0, 0x2D0, 0x42F, 0x58B, 0x780, 0x95E]] # max request allowed is 4096, but above 2560 is flat
         # torque table goes up to 0x6EE but lookup function input is clamped at 67E therefore max request is 0xF00, but output is flat above 0x95E, so dont send higher
-        #ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.18]]
-        ret.lateralTuing.init('lqr')
-        ret.lateralTuning.lqr.scale = 1500.0
-        ret.lateralTuning.lqr.a = [0., 1., -0.22619643, 1.21822268]
-        ret.lateralTuning.lqr.b = [-1.92006585e-04, 3.95603032e-05]
-        ret.lateralTuning.lqr.c = [1., 0.]
-        ret.lateralTuning.lqr.k = [-110.73572306, 451.22718255]
-        ret.lateralTuning.lqr.l = [0.3233671, 0.3185757]
-        ret.lateralTuning.lqr.dcGain = 0.002237852961363602
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.18]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
       ret.longitudinalTuning.kpV = [1.2, 0.8, 0.5]
       ret.longitudinalTuning.kiBP = [0., 35.]
