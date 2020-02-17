@@ -8,6 +8,7 @@ from selfdrive.controls.lib.lane_planner import LanePlanner
 from selfdrive.kegman_conf import kegman_conf
 from common.numpy_fast import interp
 from selfdrive.config import Conversions as CV
+from common.params import Params
 import cereal.messaging as messaging
 from cereal import log
 from selfdrive.controls.lib.curvature_learner import CurvatureLearner
@@ -55,6 +56,7 @@ class PathPlanner():
 
     self.setup_mpc()
     self.solution_invalid_cnt = 0
+    self.lane_change_enabled = Params().get('LaneChangeEnabled') == b'1'
     self.path_offset_i = 0.0
     self.lane_change_state = LaneChangeState.off
     self.lane_change_timer = 0.0
@@ -235,6 +237,10 @@ class PathPlanner():
       elif sm['carState'].rightBlinker:
         lane_change_direction = LaneChangeDirection.right
 
+    if (not active) or (self.lane_change_timer > LANE_CHANGE_TIME_MAX) or (not one_blinker) or (not self.lane_change_enabled):
+      self.lane_change_state = LaneChangeState.off
+      self.lane_change_direction = LaneChangeDirection.none
+    else:
       torque_applied = sm['carState'].steeringPressed and \
                        ((sm['carState'].steeringTorque > 0 and lane_change_direction == LaneChangeDirection.left) or \
                         (sm['carState'].steeringTorque < 0 and lane_change_direction == LaneChangeDirection.right))
