@@ -33,7 +33,7 @@ class CarInterface(CarInterfaceBase):
 
     # *** init the major players ***
     canbus = CanBus()
-    self.CS = CarState(CP, canbus)
+    self.CS = CarState(CP)
     self.VM = VehicleModel(CP)
     self.pt_cp = get_powertrain_can_parser(CP, canbus)
     self.ch_cp = get_chassis_can_parser(CP, canbus)
@@ -287,7 +287,7 @@ class CarInterface(CarInterfaceBase):
       be.pressed = self.CS.right_blinker_on
       buttonEvents.append(be)
 
-    if self.CS.cruise_buttons != self.CS.prev_cruise_buttons:
+    if self.CS.cruise_buttons != self.CS.prev_cruise_buttons and self.CS.prev_cruise_buttons != CruiseButtons.INIT:
       be = car.CarState.ButtonEvent.new_message()
       be.type = ButtonType.unknown
       if self.CS.cruise_buttons != CruiseButtons.UNPRESS:
