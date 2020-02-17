@@ -355,7 +355,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.39
       ret.steerRatio = 15.0  # 12.58 is spec end-to-end
       ret.steerRateCost = 0.5
-      tire_stiffness_factor = 0.82
+      tire_stiffness_factor = 1.
       # stock request output values:    0x0000, 0x0380, 0x0800, 0x0c00, 0x0eb6, 0x10ae, 0x1200, 0x1200, 0x1200
       # modified request output values: 0x0000, 0x0746, 0x0B04, 0x0CDF, 0x0E19, 0x1008, 0x1200, 0x1B00, 0x2400
       # stock filter output values:     0x009F, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108

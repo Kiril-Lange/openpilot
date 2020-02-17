@@ -60,11 +60,11 @@ class PathPlanner():
     self.lane_change_timer = 0.0
     self.prev_one_blinker = False
 
-    #self.mpc_frame = 0
-    #self.sR_delay_counter = 0
-    #self.steerRatio_new = 0.0
-    #self.sR_time = 1
-    #self.curvature_offset = CurvatureLearner(debug=False)
+    self.mpc_frame = 0
+    self.sR_delay_counter = 0
+    self.steerRatio_new = 0.0
+    self.sR_time = 1
+    self.curvature_offset = CurvatureLearner(debug=False)
     
     kegman = kegman_conf(CP)
     self.steerRatio = CP.steerRatio
@@ -78,8 +78,8 @@ class PathPlanner():
     else:
       self.steerRateCost = float(kegman.conf['steerRateCost'])
       
-    #self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost']))]
-    #self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1'])]
+    self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost']))]
+    self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1'])]
 
     self.steerRateCost_prev = self.steerRateCost
     self.setup_mpc()
@@ -120,41 +120,41 @@ class PathPlanner():
     # Run MPC
     self.angle_steers_des_prev = self.angle_steers_des_mpc
     VM.update_params(sm['liveParameters'].stiffnessFactor, sm['liveParameters'].steerRatio)
-    #curvature_factor = VM.curvature_factor(v_ego)
+    curvature_factor = VM.curvature_factor(v_ego)
     #zorro's curvature learner v4
-    curvature_factor = VM.curvature_factor(v_ego) #+ self.curvature_offset.update(angle_steers - angle_offset, self.LP.d_poly)
+    #curvature_factor = VM.curvature_factor(v_ego) #+ self.curvature_offset.update(angle_steers - angle_offset, self.LP.d_poly)
     # Get steerRatio and steerRateCost from kegman.json every x seconds
-    #self.mpc_frame += 1
-    #if self.mpc_frame % 500 == 0:
+    self.mpc_frame += 1
+    if self.mpc_frame % 500 == 0:
       # live tuning through /data/openpilot/tune.py overrides interface.py settings
-      #kegman = kegman_conf()
+      kegman = kegman_conf()
       #if kegman.conf['tuneGernby'] == "1":
-        #self.steerRateCost = float(kegman.conf['steerRateCost'])
-        #if self.steerRateCost != self.steerRateCost_prev:
-          #self.setup_mpc()
-          #self.steerRateCost_prev = self.steerRateCost
+      self.steerRateCost = float(kegman.conf['steerRateCost'])
+      if self.steerRateCost != self.steerRateCost_prev:
+        self.setup_mpc()
+        self.steerRateCost_prev = self.steerRateCost
           
-        #self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost']))]
-        #self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1'])]
-        #self.sR_time = int(float(kegman.conf['sR_time'])) * 100
+        self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost']))]
+        self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1'])]
+        self.sR_time = int(float(kegman.conf['sR_time'])) * 100
          
-      #self.mpc_frame = 0
+      self.mpc_frame = 0
     
-    #if v_ego > 11.111:
+    if v_ego > 11.111:
       # boost steerRatio by boost amount if desired steer angle is high
-      #self.steerRatio_new = interp(abs(angle_steers), self.sRBP, self.sR)
+      self.steerRatio_new = interp(abs(angle_steers), self.sRBP, self.sR)
       
-      #self.sR_delay_counter += 1
-      #if self.sR_delay_counter % self.sR_time != 0:
-        #if self.steerRatio_new > self.steerRatio:
-          #self.steerRatio = self.steerRatio_new
-      #else:
-        #self.steerRatio = self.steerRatio_new
-        #self.sR_delay_counter = 0
-    #else:
-      #self.steerRatio = self.sR[0]
+      self.sR_delay_counter += 1
+      if self.sR_delay_counter % self.sR_time != 0:
+        if self.steerRatio_new > self.steerRatio:
+          self.steerRatio = self.steerRatio_new
+      else:
+        self.steerRatio = self.steerRatio_new
+        self.sR_delay_counter = 0
+    else:
+      self.steerRatio = self.sR[0]
       
-    #print("steerRatio = ", self.steerRatio)
+    print("steerRatio = ", self.steerRatio)
 
     self.LP.parse_model(sm['model'])
 

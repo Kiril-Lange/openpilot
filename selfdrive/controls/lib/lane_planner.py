@@ -84,30 +84,30 @@ class LanePlanner():
     self.r_poly[3] += CAMERA_OFFSET
 
     # Find current lanewidth
-    self.lane_width_certainty += 0.05 * (self.l_prob * self.r_prob - self.lane_width_certainty)
-    current_lane_width = abs(self.l_poly[3] - self.r_poly[3])
-    self.lane_width_estimate += 0.005 * (current_lane_width - self.lane_width_estimate)
-    speed_lane_width = interp(v_ego, [0., 31.], [2.85, 3.65])
-    self.lane_width = self.lane_width_certainty * self.lane_width_estimate + \
-                      (1 - self.lane_width_certainty) * speed_lane_width
+    #self.lane_width_certainty += 0.05 * (self.l_prob * self.r_prob - self.lane_width_certainty)
+    #current_lane_width = abs(self.l_poly[3] - self.r_poly[3])
+    #self.lane_width_estimate += 0.005 * (current_lane_width - self.lane_width_estimate)
+    #speed_lane_width = interp(v_ego, [0., 31.], [2.85, 3.65])
+    #self.lane_width = self.lane_width_certainty * self.lane_width_estimate + \
+    #                  (1 - self.lane_width_certainty) * speed_lane_width
 
     #zorrobyte code
     # Find current lanewidth
-    #if self.l_prob > 0.49 and self.r_prob > 0.49:
-    #  self.frame += 1
-    #  if self.frame % 20 == 0:
-    #    self.frame = 0
-    #    current_lane_width = sorted((2.8, abs(self.l_poly[3] - self.r_poly[3]), 3.6))[1]
-    #    max_samples = 30
-    #    self.readings.append(current_lane_width)
-    #    self.lane_width = mean(self.readings)
-    #    if len(self.readings) == max_samples:
-    #      self.readings.pop(0)
+    if self.l_prob > 0.49 and self.r_prob > 0.49:
+      self.frame += 1
+      if self.frame % 20 == 0:
+        self.frame = 0
+        current_lane_width = sorted((2.8, abs(self.l_poly[3] - self.r_poly[3]), 3.6))[1]
+        max_samples = 30
+        self.readings.append(current_lane_width)
+        self.lane_width = mean(self.readings)
+        if len(self.readings) == max_samples:
+          self.readings.pop(0)
 
     #zorrobyte
     # Don't exit dive
-    #if abs(self.l_poly[3] - self.r_poly[3]) > self.lane_width:
-    #  self.r_prob = self.r_prob / interp(self.l_prob, [0, 1], [1, 3])
+    if abs(self.l_poly[3] - self.r_poly[3]) > self.lane_width:
+      self.r_prob = self.r_prob / interp(self.l_prob, [0, 1], [1, 3])
     
     self.d_poly = calc_d_poly(self.l_poly, self.r_poly, self.p_poly, self.l_prob, self.r_prob, self.lane_width)
 
