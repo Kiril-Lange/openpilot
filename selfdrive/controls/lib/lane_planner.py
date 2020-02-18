@@ -24,7 +24,7 @@ def model_polyfit(points, path_pinv):
 
 def calc_d_poly(l_poly, r_poly, p_poly, l_prob, r_prob, lane_width):
   # This will improve behaviour when lanes suddenly widen
-  lane_width = min(3.5, lane_width)
+  lane_width = min(4.0, lane_width)
   l_prob = l_prob * interp(abs(l_poly[3]), [2, 2.5], [1.0, 0.0])
   r_prob = r_prob * interp(abs(r_poly[3]), [2, 2.5], [1.0, 0.0])
 
@@ -46,9 +46,9 @@ class LanePlanner():
     self.p_poly = [0., 0., 0., 0.]
     self.d_poly = [0., 0., 0., 0.]
 
-    self.lane_width_estimate = 3.5 #comma default
+    self.lane_width_estimate = 3.7 #comma default
     self.lane_width_certainty = 1.0 #comma default
-    self.lane_width = 3.65 #comma default
+    self.lane_width = 3.7 #comma default
     #zorro
     self.readings = []
     self.frame = 0
@@ -97,7 +97,7 @@ class LanePlanner():
       self.frame += 1
       if self.frame % 20 == 0:
         self.frame = 0
-        current_lane_width = sorted((2.8, abs(self.l_poly[3] - self.r_poly[3]), 3.6))[1]
+        current_lane_width = sorted((2.5, abs(self.l_poly[3] - self.r_poly[3]), 3.5))[1]
         max_samples = 30
         self.readings.append(current_lane_width)
         self.lane_width = mean(self.readings)
