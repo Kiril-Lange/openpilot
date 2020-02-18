@@ -195,10 +195,10 @@ class CarController():
     P = self.params
 
     # *** apply brake hysteresis ***
-    brake, self.braking, self.brake_steady = actuator_hystereses(actuators.brake, self.braking, self.brake_steady, CS.v_ego, CS.CP.carFingerprint)
+    brake, self.braking, self.brake_steady = actuator_hystereses(actuators.brake, self.braking, self.brake_steady, CS.out.vEgo, CS.CP.carFingerprint)
 
     # *** no output if not enabled ***
-    if not enabled and CS.pcm_acc_status:
+    if not enabled and CS.out.cruiseState.enabled:
       # send pcm acc cancel cmd if drive is disabled but pcm is still on, or if the system can't be activated
       pcm_cancel_cmd = True
 
