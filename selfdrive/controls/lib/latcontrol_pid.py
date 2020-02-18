@@ -3,11 +3,13 @@ from selfdrive.controls.lib.drive_helpers import get_steer_max
 from cereal import car
 from cereal import log
 from selfdrive.kegman_conf import kegman_conf
+from selfdrive.controls.lane_hugging import LaneHugging
 
 
 class LatControlPID():
   def __init__(self, CP):
     self.kegman = kegman_conf(CP)
+    self.lane_hugging = LaneHugging()
     self.deadzone = float(self.kegman.conf['deadzone'])
     self.pid = PIController((CP.lateralTuning.pid.kpBP, CP.lateralTuning.pid.kpV),
                             (CP.lateralTuning.pid.kiBP, CP.lateralTuning.pid.kiV),
@@ -47,7 +49,7 @@ class LatControlPID():
       pid_log.active = False
       self.pid.reset()
     else:
-      self.angle_steers_des = path_plan.angleSteers  # get from MPC/PathPlanner
+      self.angle_steers_des = self.lane_hugging.init(path_plan.angleSteers)  # get from MPC/PathPlanner
 
       steers_max = get_steer_max(CP, v_ego)
       self.pid.pos_limit = steers_max
