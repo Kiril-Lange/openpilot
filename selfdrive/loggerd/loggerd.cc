@@ -23,7 +23,6 @@
 #include <ftw.h>
 
 #include <zmq.h>
-#include <yaml-cpp/yaml.h>
 #include <capnp/serialize.h>
 
 #ifdef QCOM
@@ -40,6 +39,7 @@
 
 #include "logger.h"
 #include "messaging.hpp"
+#include "services.h"
 
 #ifndef QCOM
 // no encoder on PC
@@ -578,9 +578,6 @@ int main(int argc, char** argv) {
   s.ctx = Context::create();
   Poller * poller = Poller::create();
 
-  std::string exe_dir = util::dir_name(util::readlink("/proc/self/exe"));
-  std::string service_list_path = exe_dir + "/../../cereal/service_list.yaml";
-
   // subscribe to all services
 
   SubSocket *frame_sock = NULL;
@@ -592,7 +589,7 @@ int main(int argc, char** argv) {
   for (const auto& it : services) {
     std::string name = it.name;
 
-    if (should_log) {
+    if (it.should_log) {
       SubSocket * sock = SubSocket::create(s.ctx, name);
       assert(sock != NULL);
 
