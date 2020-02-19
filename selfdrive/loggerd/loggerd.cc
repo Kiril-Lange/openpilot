@@ -589,11 +589,8 @@ int main(int argc, char** argv) {
   std::map<SubSocket*, int> qlog_counter;
   std::map<SubSocket*, int> qlog_freqs;
 
-  YAML::Node service_list = YAML::LoadFile(service_list_path);
-  for (const auto& it : service_list) {
-    auto name = it.first.as<std::string>();
-    bool should_log = it.second[1].as<bool>();
-    int qlog_freq = it.second[3] ? it.second[3].as<int>() : 0;
+  for (const auto& it : services) {
+    std::string name = it.name;
 
     if (should_log) {
       SubSocket * sock = SubSocket::create(s.ctx, name);
@@ -606,8 +603,8 @@ int main(int argc, char** argv) {
         frame_sock = sock;
       }
 
-      qlog_counter[sock] = (qlog_freq == 0) ? -1 : 0;
-      qlog_freqs[sock] = qlog_freq;
+      qlog_counter[sock] = (it.decimation == -1) ? -1 : 0;
+      qlog_freqs[sock] = it.decimation;
     }
   }
 
