@@ -223,13 +223,69 @@ class CarInterface(CarInterfaceBase):
   def update(self, c, can_strings):
     self.pt_cp.update_strings(can_strings)
 
-    ret = self.CS.update(self.pt_cp)
+    self.CS.update(self.pt_cp)
+
+    # create message
+    ret = car.CarState.new_message()
 
     ret.canValid = self.pt_cp.can_valid
-    ret.yawRate = self.VM.yaw_rate(ret.steeringAngle * CV.DEG_TO_RAD, ret.vEgo)
+
+    # speeds
+    ret.vEgo = self.CS.v_ego
+    ret.aEgo = self.CS.a_ego
+    ret.vEgoRaw = self.CS.v_ego_raw
+    ret.yawRate = self.VM.yaw_rate(self.CS.angle_steers * CV.DEG_TO_RAD, self.CS.v_ego)
+    ret.standstill = self.CS.standstill
+    ret.wheelSpeeds.fl = self.CS.v_wheel_fl
+    ret.wheelSpeeds.fr = self.CS.v_wheel_fr
+    ret.wheelSpeeds.rl = self.CS.v_wheel_rl
+    ret.wheelSpeeds.rr = self.CS.v_wheel_rr
+
+    # gas pedal information.
+    ret.gas = self.CS.pedal_gas / 254.0
+    ret.gasPressed = self.CS.user_gas_pressed
+
+    # brake pedal
+    ret.brake = self.CS.user_brake / 0xd0
+    ret.brakePressed = self.CS.brake_pressed
+    ret.brakeLights = self.CS.frictionBrakesActive
+    
+    # steering wheel
+    ret.steeringAngle = self.CS.angle_steers
+
+    # torque and user override. Driver awareness
+    # timer resets when the user uses the steering wheel.
+    ret.steeringPressed = self.CS.steer_override
+    ret.steeringTorque = self.CS.steer_torque_driver
     ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
 
+    # cruise state
+    ret.cruiseState.available = bool(self.CS.main_on)
+    cruiseEnabled = self.CS.pcm_acc_status != AccState.OFF
+    ret.cruiseState.enabled = cruiseEnabled
+    ret.cruiseState.standstill = False
+
+    ret.leftBlinker = self.CS.left_blinker_on
+    ret.rightBlinker = self.CS.right_blinker_on
+    ret.doorOpen = not self.CS.door_all_closed
+    ret.seatbeltUnlatched = not self.CS.seatbelt
+    ret.gearShifter = self.CS.gear_shifter
+    ret.readdistancelines = self.CS.follow_level
+
     buttonEvents = []
+
+    # blinkers
+    if self.CS.left_blinker_on != self.CS.prev_left_blinker_on:
+      be = car.CarState.ButtonEvent.new_message()
+      be.type = ButtonType.leftBlinker
+      be.pressed = self.CS.left_blinker_on
+      buttonEvents.append(be)
+
+    if self.CS.right_blinker_on != self.CS.prev_right_blinker_on:
+      be = car.CarState.ButtonEvent.new_message()
+      be.type = ButtonType.rightBlinker
+      be.pressed = self.CS.right_blinker_on
+      buttonEvents.append(be)
 
     if self.CS.cruise_buttons != self.CS.prev_cruise_buttons and self.CS.prev_cruise_buttons != CruiseButtons.INIT:
       be = car.CarState.ButtonEvent.new_message()
@@ -241,7 +297,7 @@ class CarInterface(CarInterfaceBase):
         be.pressed = False
         but = self.CS.prev_cruise_buttons
       if but == CruiseButtons.RES_ACCEL:
-        if not (ret.cruiseState.enabled and ret.standstill):
+        if not (cruiseEnabled and self.CS.standstill):
           be.type = ButtonType.accelCruise # Suppress resume button if we're resuming from stop so we don't adjust speed.
       elif but == CruiseButtons.DECEL_SET:
         if not cruiseEnabled and not self.CS.lkMode:
@@ -264,6 +320,12 @@ class CarInterface(CarInterfaceBase):
          self.CS.follow_level = 3
 
     events = []
+    
+    if cruiseEnabled and (self.CS.left_blinker_on or self.CS.right_blinker_on):
+       events.append(create_event('manualSteeringRequiredBlinkersOn', [ET.WARNING]))
+
+    if self.CS.steer_error:
+      events.append(create_event('steerUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
     if self.CS.steer_not_allowed:
       events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.WARNING]))
     if ret.doorOpen:
@@ -278,13 +340,15 @@ class CarInterface(CarInterfaceBase):
         events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
 
     else:
-      if ret.gearShifter != car.CarState.GearShifter.drive:
+      if self.CS.brake_error:
+        events.append(create_event('brakeUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
+      if not self.CS.gear_shifter_valid:
         events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
       if self.CS.esp_disabled:
         events.append(create_event('espDisabled', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
-      if not ret.cruiseState.available:
+      if not self.CS.main_on:
         events.append(create_event('wrongCarMode', [ET.NO_ENTRY, ET.USER_DISABLE]))
-      if ret.gearShifter == car.CarState.GearShifter.reverse:
+      if self.CS.gear_shifter == 3:
         events.append(create_event('reverseGear', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
       if ret.vEgo < self.CP.minEnableSpeed:
         events.append(create_event('speedTooLow', [ET.NO_ENTRY]))
@@ -317,11 +381,11 @@ class CarInterface(CarInterfaceBase):
     self.gas_pressed_prev = ret.gasPressed
     self.brake_pressed_prev = ret.brakePressed
 
-    # copy back carState packet to CS
-    self.CS.out = ret.as_reader()
+    # cast to reader so it can't be modified
+    return ret.as_reader()
 
-    return self.CS.out
-
+  # pass in a car.CarControl
+  # to be called @ 100hz
   def apply(self, c):
     hud_v_cruise = c.hudControl.setSpeed
     if hud_v_cruise > 70:
@@ -329,7 +393,7 @@ class CarInterface(CarInterfaceBase):
 
     # For Openpilot, "enabled" includes pre-enable.
     # In GM, PCM faults out if ACC command overlaps user gas.
-    enabled = c.enabled and not self.CS.out.gasPressed
+    enabled = c.enabled and not self.CS.user_gas_pressed
 
     can_sends = self.CC.update(enabled, self.CS, self.frame, \
                                c.actuators,

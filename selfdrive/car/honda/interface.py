@@ -487,20 +487,82 @@ class CarInterface(CarInterfaceBase):
     self.cp.update_strings(can_strings)
     self.cp_cam.update_strings(can_strings)
 
-    ret = self.CS.update(self.cp, self.cp_cam)
+    self.CS.update(self.cp, self.cp_cam)
+
+    # create message
+    ret = car.CarState.new_message()
 
     ret.canValid = self.cp.can_valid and self.cp_cam.can_valid
-    ret.yawRate = self.VM.yaw_rate(ret.steeringAngle * CV.DEG_TO_RAD, ret.vEgo)
+
+    # speeds
+    ret.vEgo = self.CS.v_ego
+    ret.aEgo = self.CS.a_ego
+    ret.vEgoRaw = self.CS.v_ego_raw
+    ret.yawRate = self.VM.yaw_rate(self.CS.angle_steers * CV.DEG_TO_RAD, self.CS.v_ego)
+    ret.standstill = self.CS.standstill
+    ret.wheelSpeeds.fl = self.CS.v_wheel_fl
+    ret.wheelSpeeds.fr = self.CS.v_wheel_fr
+    ret.wheelSpeeds.rl = self.CS.v_wheel_rl
+    ret.wheelSpeeds.rr = self.CS.v_wheel_rr
+
+    # gas pedal
+    ret.gas = self.CS.car_gas / 256.0
+    if not self.CP.enableGasInterceptor:
+      ret.gasPressed = self.CS.pedal_gas > 0
+    else:
+      ret.gasPressed = self.CS.user_gas_pressed
+
+    # brake pedal
+    ret.brake = self.CS.user_brake
+    ret.brakePressed = self.CS.brake_pressed != 0
     # FIXME: read sendcan for brakelights
     brakelights_threshold = 0.02 if self.CS.CP.carFingerprint == CAR.CIVIC else 0.1
     ret.brakeLights = bool(self.CS.brake_switch or
                            c.actuators.brake > brakelights_threshold)
 
+    # steering wheel
+    ret.steeringAngle = self.CS.angle_steers
+    ret.steeringRate = self.CS.angle_steers_rate
+
+    # gear shifter lever
+    ret.gearShifter = self.CS.gear_shifter
+
+    ret.steeringTorque = self.CS.steer_torque_driver
+    ret.steeringTorqueEps = self.CS.steer_torque_motor
+    ret.steeringPressed = self.CS.steer_override
+
+    # cruise state
+    ret.cruiseState.enabled = self.CS.pcm_acc_status != 0
+    ret.cruiseState.speed = self.CS.v_cruise_pcm * CV.KPH_TO_MS
+    ret.cruiseState.available = bool(self.CS.main_on) and not bool(self.CS.cruise_mode)
+    ret.cruiseState.speedOffset = self.CS.cruise_speed_offset
+    ret.cruiseState.standstill = False
+    
     ret.readdistancelines = self.CS.read_distance_lines
     ret.lkMode = self.CS.lkMode
 
     # TODO: button presses
     buttonEvents = []
+    ret.leftBlinker = bool(self.CS.left_blinker_on)
+    ret.rightBlinker = bool(self.CS.right_blinker_on)
+
+    ret.doorOpen = not self.CS.door_all_closed
+    ret.seatbeltUnlatched = not self.CS.seatbelt
+
+    ret.stockAeb = self.CS.stock_aeb
+    ret.stockFcw = self.CS.stock_fcw
+
+    if self.CS.left_blinker_on != self.CS.prev_left_blinker_on:
+      be = car.CarState.ButtonEvent.new_message()
+      be.type = ButtonType.leftBlinker
+      be.pressed = self.CS.left_blinker_on != 0
+      buttonEvents.append(be)
+
+    if self.CS.right_blinker_on != self.CS.prev_right_blinker_on:
+      be = car.CarState.ButtonEvent.new_message()
+      be.type = ButtonType.rightBlinker
+      be.pressed = self.CS.right_blinker_on != 0
+      buttonEvents.append(be)
 
     if self.CS.cruise_buttons != self.CS.prev_cruise_buttons:
       be = car.CarState.ButtonEvent.new_message()
@@ -561,7 +623,7 @@ class CarInterface(CarInterfaceBase):
       events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if self.CS.esp_disabled:
       events.append(create_event('espDisabled', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
-    if not ret.cruiseState.available:
+    if not self.CS.main_on or self.CS.cruise_mode:
       events.append(create_event('wrongCarMode', [ET.NO_ENTRY, ET.USER_DISABLE]))
     if ret.gearShifter == GearShifter.reverse:
       events.append(create_event('reverseGear', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
@@ -627,8 +689,8 @@ class CarInterface(CarInterfaceBase):
     self.gas_pressed_prev = ret.gasPressed
     self.brake_pressed_prev = ret.brakePressed
 
-    self.CS.out = ret.as_reader()
-    return self.CS.out
+    # cast to reader so it can't be modified
+    return ret.as_reader()
 
   # pass in a car.CarControl
   # to be called @ 100hz
