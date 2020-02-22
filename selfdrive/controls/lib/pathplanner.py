@@ -157,7 +157,8 @@ class PathPlanner():
     #  self.steerRatio = self.sR[0]
       
     #joes dynamic sR based off angle_steers
-    self.steerRatio = CP.steerRatio - 0.008 * abs(angle_steers)
+    self.steerRatio_new = interp(abs(angle_steers), self.sRBP, self.sR)
+    self.steerRatio = self.steerRatio_new - 0.008 * abs(angle_steers)
     print("steerRatio = ", self.steerRatio)
     self.LP.parse_model(sm['model'])
 
