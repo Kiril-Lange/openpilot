@@ -247,6 +247,9 @@ class CarController():
     idx = frame % 4
     can_sends.append(hondacan.create_steering_control(self.packer, apply_steer,
       lkas_active, CS.CP.carFingerprint, idx, CS.CP.isPandaBlack))
+    
+    # Try and disable first 16 bits in 0xE5
+    can_sends.append(hondacan.create_steering_control_x2(self.packer, CS.CP.carFingerprint, idx, CS.CP.isPandaBlack))
 
     # Send dashboard UI commands.
     if (frame % 10) == 0:
