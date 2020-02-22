@@ -40,7 +40,7 @@ def create_steering_control_x2(packer, car_fingerprint, idx, has_relay):
   values = {
     "16X_0": 0,
   }
-  bus = get_lkas_cmd_bus(car_figerprint, has_relay)
+  bus = get_lkas_cmd_bus(car_fingerprint, has_relay)
   return packer.make_can_msg("STEERING_CONTROL_X2", bus, values, idx)
 
 def create_steering_control(packer, apply_steer, lkas_active, car_fingerprint, idx, has_relay):
