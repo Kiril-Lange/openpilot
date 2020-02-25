@@ -287,10 +287,10 @@ def thermald_thread():
     #    alert_connectivity_prompt["text"] += remaining_time + " days."
     #    params.delete("Offroad_ConnectivityNeeded")
     #    params.put("Offroad_ConnectivityNeededPrompt", json.dumps(alert_connectivity_prompt))
-    if current_connectivity_alert is not None:
-    #  current_connectivity_alert = None
-      params.delete("Offroad_ConnectivityNeeded")
-      params.delete("Offroad_ConnectivityNeededPrompt")
+    #if current_connectivity_alert is not None:
+    current_connectivity_alert = None
+    params.delete("Offroad_ConnectivityNeeded")
+    params.delete("Offroad_ConnectivityNeededPrompt")
 
     # start constellation of processes when the car starts
     ignition = health is not None and (health.health.ignitionLine or health.health.ignitionCan)
