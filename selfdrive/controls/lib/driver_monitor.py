@@ -165,7 +165,7 @@ class DriverStatus():
     elif (blink.left_blink + blink.right_blink)*0.5 > _BLINK_THRESHOLD*blink.cfactor:
       return DistractedType.NOT_DISTRACTED
     else:
-    return DistractedType.NOT_DISTRACTED
+      return DistractedType.NOT_DISTRACTED
 
   def set_policy(self, model_data):
     ep = min(model_data.meta.engagedProb, 0.8) / 0.8
