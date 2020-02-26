@@ -49,8 +49,8 @@ H, W, FULL_W = 320, 160, 426
 
 class DistractedType():
   NOT_DISTRACTED = 0
-  BAD_POSE = 0
-  BAD_BLINK = 0
+  BAD_POSE = 1
+  BAD_BLINK = 2
 
 def face_orientation_from_net(angles_desc, pos_desc, rpy_calib):
   # the output of these angles are in device frame
