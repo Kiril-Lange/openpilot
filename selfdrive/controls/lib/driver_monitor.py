@@ -8,7 +8,7 @@ from selfdrive.kegman_conf import kegman_conf
 kegman = kegman_conf()
 
 
-_AWARENESS_TIME = min(int(kegman.conf['wheelTouchSeconds']), 86400)    # x minutes limit without user touching steering wheels make the car enter a terminal status
+_AWARENESS_TIME = 86400    # x minutes limit without user touching steering wheels make the car enter a terminal status
 _AWARENESS_PRE_TIME_TILL_TERMINAL = 25.  # a first alert is issued 25s before expiration
 _AWARENESS_PROMPT_TIME_TILL_TERMINAL = 15.  # a second alert is issued 15s before start decelerating the car
 _DISTRACTED_TIME = 11.
@@ -160,11 +160,11 @@ class DriverStatus():
     pitch_error *= _PITCH_WEIGHT
     pose_metric = sqrt(yaw_error**2 + pitch_error**2)
 
-    #if pose_metric > _METRIC_THRESHOLD*pose.cfactor:
-    #  return DistractedType.BAD_POSE
-    #elif (blink.left_blink + blink.right_blink)*0.5 > _BLINK_THRESHOLD*blink.cfactor:
-    #  return DistractedType.BAD_BLINK
-    #else:
+    if pose_metric > _METRIC_THRESHOLD*pose.cfactor:
+      return DistractedType.NOT_DISTRACTED
+    elif (blink.left_blink + blink.right_blink)*0.5 > _BLINK_THRESHOLD*blink.cfactor:
+      return DistractedType.NOT_DISTRACTED
+    else:
     return DistractedType.NOT_DISTRACTED
 
   def set_policy(self, model_data):
