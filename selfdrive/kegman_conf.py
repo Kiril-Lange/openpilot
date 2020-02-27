@@ -118,7 +118,7 @@ class kegman_conf():
 
       if "sR_boost0" not in self.config:
         self.config.update({"sR_boost0":"0"})
-        self.comfig.update({"sR_boost1":"0"})
+        self.config.update({"sR_boost1":"0"})
         self.config.update({"sR_boost2":"0"})
         self.config.update({"sR_boost3":"0"})
         self.config.update({"sR_BP0":"0"})
