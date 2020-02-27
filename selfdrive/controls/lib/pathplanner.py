@@ -80,8 +80,8 @@ class PathPlanner():
     else:
       self.steerRateCost = float(kegman.conf['steerRateCost'])
       
-    self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost0'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost1'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost2']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost3'])))]
-    self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1'], float(kegman.conf['sR_BP2'], float(kegman.conf['sR_BP3'] )]
+    self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost0'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost1'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost2'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost3']))]
+    self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1']), float(kegman.conf['sR_BP2']), float(kegman.conf['sR_BP3'])]
 
     self.steerRateCost_prev = self.steerRateCost
     self.setup_mpc()
@@ -136,8 +136,8 @@ class PathPlanner():
         self.setup_mpc()
         self.steerRateCost_prev = self.steerRateCost
           
-        self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost0'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost1'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost2']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost3'])))]
-        self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1'], float(kegman.conf['sR_BP2'], float(kegman.conf['sR_BP3'] )]
+        self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost0'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost1'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost2'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost3']))]
+        self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1']), float(kegman.conf['sR_BP2']), float(kegman.conf['sR_BP3'])]
         self.sR_time = int(float(kegman.conf['sR_time'])) * 100
          
       self.mpc_frame = 0
