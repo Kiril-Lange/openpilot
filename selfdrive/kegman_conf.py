@@ -13,14 +13,6 @@ class kegman_conf():
       self.conf['tuneGernby'] = str(1)
       write_conf = True
 
-    if self.conf['zorro_mod'] != "1" or self.conf['zorro_mod'] != "0":
-      self.conf['zorro_mod'] = str(0)
-      write_conf = True
-
-    if self.conf['shane_mod'] != "1" or self.conf['shane_mod'] != "0":
-      self.conf['zorro_mod'] = str(1)
-      write_conf = True
-
     # only fetch Kp, Ki, Kf sR and sRC from interface.py if it's a PID controlled car
     if CP.lateralTuning.which() == 'pid':
       if self.conf['Kp'] == "-1":
@@ -124,15 +116,16 @@ class kegman_conf():
         self.config.update({"Kf":"-1"})
         self.element_updated = True
 
-      if "sR_boost" not in self.config:
-        self.config.update({"sR_boost":"0"})
+      if "sR_boost0" not in self.config:
+        self.config.update({"sR_boost0":"0"})
+        self.comfig.update({"sR_boost1":"0"})
+        self.config.update({"sR_boost2":"0"})
+        self.config.update({"sR_boost3":"0"})
         self.config.update({"sR_BP0":"0"})
         self.config.update({"sR_BP1":"0"})
+        self.config.update({"sR_BP2":"0"})
+        self.config.update({"sR_BP3":"0"})
         self.config.update({"sR_time":"1"})
-        self.element_updated = True
-
-      if "simpledd" not in self.config:
-        self.config.update({"simpledd":"0"})
         self.element_updated = True
 
       if self.element_updated:
@@ -148,7 +141,7 @@ class kegman_conf():
 		     "3barBP1":"3.0", "1barMax":"2.1", "2barMax":"2.1", "3barMax":"2.1", \
 		     "1barHwy":"0.4", "2barHwy":"0.3", "3barHwy":"0.1", \
          "steerRatio":"-1", "steerRateCost":"-1", "slowOnCurves":"0", "Kf":"-1", "zorro_mod":"1", "shane_mod":"1", \
-                     "sR_boost": "4.5", "sR_BP0": "3.5", "sR_BP1": "10", "sR_time": "1.5", "simpledd":"0", "lane_hug_direction":"left", "lane_hug_mod":"1.2", "lane_hug_angle":"5"}
+         "sR_boost0": "4.5", "sR_boost1": "3.5", "sR_boost2": "2.5", "sR_boost1": "1.5", "sR_BP0": "3.5", "sR_BP1": "10", "sR_BP2": "13.5", "sRBP3": "20.0", "sR_time": "1.5", "lane_hug_direction":"left", "lane_hug_mod":"1.2", "lane_hug_angle":"5"}
 
       self.write_config(self.config)
     return self.config
