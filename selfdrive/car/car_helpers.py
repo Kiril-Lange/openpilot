@@ -69,7 +69,7 @@ def fingerprint(logcan, sendcan, has_relay):
     bus = 1
 
     cached_params = Params().get("CarParamsCache")
-    if cached_params is not None:
+    if cached_params is not None and len(cached_params.carFw) > 0 and cached_params.carVin is not VIN_UNKNOWN:
       cloudlog.warning("Using cached CarParams")
       CP = car.CarParams.from_bytes(cached_params)
       vin = CP.carVin
