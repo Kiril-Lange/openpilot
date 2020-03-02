@@ -155,7 +155,7 @@ struct CarState {
   # clutch (manual transmission only)
   clutchPressed @28 :Bool;
 
-  readdistancelines @32 :Float32;
+  readdistancelines @36 :Float32;
   lkMode @35 :Bool;
 
 
