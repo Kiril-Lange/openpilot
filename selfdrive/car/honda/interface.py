@@ -174,6 +174,7 @@ class CarInterface(CarInterfaceBase):
     for fw in car_fw:
       if fw.ecu == "eps" and b"," in fw.fwVersion:
         eps_modified = True
+        print("\neps fw: " + fw.ecu+"\n")
 
     if candidate == CAR.CIVIC:
       stop_and_go = True
@@ -353,20 +354,25 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2987. * CV.LB_TO_KG + STD_CARGO_KG
       ret.wheelbase = 2.7
       ret.centerToFront = ret.wheelbase * 0.39
-      ret.steerRatio = 16.0  # 12.58 is spec end-to-end
+      ret.steerRatio = 15.38  # 12.58 is spec end-to-end
       ret.steerRateCost = 0.5
       tire_stiffness_factor = 1.
-      # stock request output values:    0x0000, 0x0380, 0x0800, 0x0c00, 0x0eb6, 0x10ae, 0x1200, 0x1200, 0x1200
-      # modified request output values: 0x0000, 0x0746, 0x0B04, 0x0CDF, 0x0E19, 0x1008, 0x1200, 0x1B00, 0x2400
-      # stock filter output values:     0x009F, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108
-      # modified filter output values:  0x009F, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108, 0x0400, 0x0480
-      # note: max request allowed is 4096, but request is clamped to at 3840 in fw torque curve lookup function
-      # 3600 is 3x max of 1200
-      # command of 0xF00 * 0xDDB4 >> 0xF >> 0x2 = 0x67E torque table index -> 3600 torque table output
-      # torque table goes up to 0x6EE but lookup function input is clamped at 67E therefore max request is 0xF00
-      ret.lateralParams.torqueBP = [0, 2560, 8000]
-      ret.lateralParams.torqueV  = [0, 2560, 3840]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.1]]
+      if eps_modified:
+        # stock request output values:    0x0000, 0x0380, 0x0800, 0x0c00, 0x0eb6, 0x10ae, 0x1200, 0x1200, 0x1200
+        # modified request output values: 0x0000, 0x0746, 0x0B04, 0x0CDF, 0x0E19, 0x1008, 0x1200, 0x1B00, 0x2400
+        # stock filter output values:     0x009F, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108
+        # modified filter output values:  0x009F, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108, 0x0108, 0x0400, 0x0480
+        # note: max request allowed is 4096, but request is clamped to at 3840 in fw torque curve lookup function
+        # 3600 is 3x max of 1200
+        # command of 0xF00 * 0xDDB4 >> 0xF >> 0x2 = 0x67E torque table index -> 3600 torque table output
+        # torque table goes up to 0x6EE but lookup function input is clamped at 67E therefore max request is 0xF00
+        ret.lateralParams.torqueBP = [0, 2564, 8000]
+        ret.lateralParams.torqueV  = [0, 2564, 3840]
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.4], [0.12]]
+      else:
+        ret.lateralParams.torqueBP = [0, 2564]
+        ret.lateralParams.torqueV = [0, 2564]
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.8], [0.24]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
       ret.longitudinalTuning.kpV = [1.2, 0.8, 0.5]
       ret.longitudinalTuning.kiBP = [0., 35.]
