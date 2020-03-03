@@ -182,7 +182,10 @@ FW_VERSIONS = {
     (Ecu.unknown, 0x18daeff1, None): [b'38897-TVA-A010\x00\x00'],
   },
   CAR.INSIGHT: {
-    (Ecu.eps,0x18da30f1, None): [b'39990-TXM-A040\x00\x00'],
+    (Ecu.eps,0x18da30f1, None): [
+      b'39990-TXM-A040\x00\x00',
+      b'39990-TXM,A040\x00\x00',
+      ],
   },
   CAR.ACCORD_15: {
     (Ecu.unknown, 0x18da10f1, None): [
