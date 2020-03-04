@@ -174,7 +174,6 @@ class CarInterface(CarInterfaceBase):
     for fw in car_fw:
       if fw.ecu == "eps" and b"," in fw.fwVersion:
         eps_modified = True
-        print("\neps fw: " + fw.ecu+"\n")
 
     if candidate == CAR.CIVIC:
       stop_and_go = True
