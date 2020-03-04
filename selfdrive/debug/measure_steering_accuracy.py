@@ -23,11 +23,10 @@ if __name__ == "__main__":
     messaging.context = messaging.Context()
 
   carControl = messaging.sub_sock('carControl', addr=args.addr, conflate=True)
-  sm = messaging.SubMaster(['carState', 'carControl', 'controlsState', 'carParams'], addr=args.addr)
+  sm = messaging.SubMaster(['carState', 'carControl', 'controlsState'], addr=args.addr)
 
   msg_cnt = 0
   stats = defaultdict(lambda: {'err': 0, "cnt": 0, "=": 0, "+": 0, "-": 0})
-  torquestats = defaultdict(lambda: {'err': 0, "cnt": 0, "=": 0, "+": 0, "-": 0})
   cnt = 0
   total_error = 0
   
@@ -49,29 +48,16 @@ if __name__ == "__main__":
         actual_angle = sm['controlsState'].angleSteers
         desired_angle = sm['carControl'].actuators.steerAngle
         angle_error = abs(desired_angle - actual_angle)
-        torque_value = sm['carParams'].lateralParams.torqueV
 
         # round numbers
         actual_angle = round(actual_angle, 1)
         desired_angle = round(desired_angle, 1)
         angle_error = round(angle_error, 2)
         angle_abs = int(abs(round(desired_angle, 0)))
-        torque_value = int(torque_value)
 
         # collect stats
-        torquestats[torque_value]["err"] += angle_error
-        torquestats[torque_value]["cnt"] += 1
         stats[angle_abs]["err"] += angle_error
         stats[angle_abs]["cnt"] += 1
-        if torque_value == angle_error:
-          torquestats[torque_value]["="] += 1
-        else:
-          if angle_error == 0.:
-            overshoot = True
-          else:
-            overshoot = angle_error < torque_value if angle_error > 0. else angle_error > torque_value
-          torquestats[torque_value]["+" if overshoot else "-"] += 1
-
         if actual_angle == desired_angle:
           stats[angle_abs]["="] += 1
         else:
@@ -92,6 +78,3 @@ if __name__ == "__main__":
       for k in sorted(stats.keys()):
         v = stats[k]
         print(f'angle: {k:#2} | error: {round(v["err"] / v["cnt"], 2):2.2f} | =:{int(v["="] / v["cnt"] * 100):#3}% | +:{int(v["+"] / v["cnt"] * 100):#4}% | -:{int(v["-"] / v["cnt"] * 100):#3}% | count: {v["cnt"]:#4}')
-      for k in sorted(torquestats.keys()):
-        v = torquestats[k]
-        print(f'torqueV: {k:#2} | error: {round(v["err"] / v["cnt"], 2):2.2f} | =:{int(v["="] / v["cnt"] * 100):#3}% | +:{int(v["+"] / v["cnt"    ] * 100):#4}% | -:{int(v["-"] / v["cnt"] * 100):#3}% | count: {v["cnt"]:#4}')
