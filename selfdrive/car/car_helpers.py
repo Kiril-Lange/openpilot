@@ -75,8 +75,8 @@ def fingerprint(logcan, sendcan, has_relay):
       vin = CP.carVin
       car_fw = list(CP.carFw)
     else:
-      _, vin = get_vin(logcan, sendcan, bus)
-      car_fw = get_fw_versions(logcan, sendcan, bus)
+      _, vin = get_vin(logcan, sendcan, 0)
+      car_fw = get_fw_versions(logcan, sendcan, 0)
 
     fw_candidates = match_fw_to_car(car_fw)
   else:
@@ -84,6 +84,7 @@ def fingerprint(logcan, sendcan, has_relay):
     fw_candidates, car_fw = set(), []
 
   cloudlog.warning("VIN %s", vin)
+  cloudlog.warning("EPS fw %s", car_fw)
   Params().put("CarVin", vin)
 
   finger = gen_empty_fingerprint()
