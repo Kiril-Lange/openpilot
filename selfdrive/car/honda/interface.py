@@ -364,8 +364,11 @@ class CarInterface(CarInterfaceBase):
         # 3600 is 3x max of 1200
         # command of 0xF00 * 0xDDB4 >> 0xF >> 0x2 = 0x67E torque table index -> 3600 torque table output
         # torque table goes up to 0x6EE but lookup function input is clamped at 67E therefore max request is 0xF00
-      ret.lateralParams.torqueBP = [0, 4096]
-      ret.lateralParams.torqueV  = [0, 4096]
+      # test flattening out low end and flatten top end during turn
+      ret.lateralParams.torqueBP = [0, 256, 4096, 4352]
+      ret.lateralParams.torqueV  = [0, 128, 3968, 4096]
+      #ret.lateralParams.torqueBP = [0, 4096]
+      #ret.lateralParams.torqueV  = [0, 4096]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.4], [0.12]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
       ret.longitudinalTuning.kpV = [1.2, 0.8, 0.5]
