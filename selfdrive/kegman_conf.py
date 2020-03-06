@@ -141,7 +141,7 @@ class kegman_conf():
 		     "3barBP1":"3.0", "1barMax":"2.1", "2barMax":"2.1", "3barMax":"2.1", \
 		     "1barHwy":"0.4", "2barHwy":"0.3", "3barHwy":"0.1", \
          "steerRatio":"-1", "steerRateCost":"-1", "slowOnCurves":"0", "Kf":"-1", "zorro_mod":"1", "shane_mod":"1", \
-         "sR_boost0": "4.5", "sR_boost1": "3.5", "sR_boost2": "2.5", "sR_boost1": "1.5", "sR_BP0": "3.5", "sR_BP1": "10", "sR_BP2": "13.5", "sRBP3": "20.0", "sR_time": "1.5", "lane_hug_direction":"left", "lane_hug_mod":"1.2", "lane_hug_angle":"5"}
+         "sR_boost0": "4.5", "sR_boost1": "3.5", "sR_boost2": "2.5", "sR_boost3": "1.5", "sR_BP0": "3.5", "sR_BP1": "10", "sR_BP2": "13.5", "sR_BP3": "20.0", "sR_time": "1.5", "lane_hug_direction":"left", "lane_hug_mod":"1.2", "lane_hug_angle":"5"}
 
       self.write_config(self.config)
     return self.config

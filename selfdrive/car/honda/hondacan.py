@@ -38,7 +38,10 @@ def create_brake_command(packer, apply_brake, pump_on, pcm_override, pcm_cancel_
 
 def create_steering_control_x2(packer, car_fingerprint, idx, has_relay):
   values = {
-    "16X_0": 0,
+    "BYTE_0": 0x04,
+    "BYTE_1": 0x00,
+    "BYTE_2": 0x80,
+    "BYTE_3": 0x10,
   }
   bus = get_lkas_cmd_bus(car_fingerprint, has_relay)
   return packer.make_can_msg("STEERING_CONTROL_X2", bus, values, idx)

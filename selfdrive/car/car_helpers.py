@@ -69,14 +69,14 @@ def fingerprint(logcan, sendcan, has_relay):
     bus = 1
 
     cached_params = Params().get("CarParamsCache")
-    if cached_params is not None:
+    if cached_params is not None and len(cached_params.carFw) > 0 and cached_params.carVin is not VIN_UNKNOWN:
       cloudlog.warning("Using cached CarParams")
       CP = car.CarParams.from_bytes(cached_params)
       vin = CP.carVin
       car_fw = list(CP.carFw)
     else:
-      _, vin = get_vin(logcan, sendcan, bus)
-      car_fw = get_fw_versions(logcan, sendcan, bus)
+      _, vin = get_vin(logcan, sendcan, 0)
+      car_fw = get_fw_versions(logcan, sendcan, 0)
 
     fw_candidates = match_fw_to_car(car_fw)
   else:
@@ -84,6 +84,7 @@ def fingerprint(logcan, sendcan, has_relay):
     fw_candidates, car_fw = set(), []
 
   cloudlog.warning("VIN %s", vin)
+  cloudlog.warning("EPS fw %s", car_fw)
   Params().put("CarVin", vin)
 
   finger = gen_empty_fingerprint()

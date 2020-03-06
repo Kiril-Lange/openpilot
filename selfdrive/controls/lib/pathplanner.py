@@ -80,8 +80,14 @@ class PathPlanner():
     else:
       self.steerRateCost = float(kegman.conf['steerRateCost'])
       
-    self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost0'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost1'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost2'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost3']))]
-    self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1']), float(kegman.conf['sR_BP2']), float(kegman.conf['sR_BP3'])]
+    self.sR = [(float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost0'])), 
+               (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost1'])), 
+               (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost2'])), 
+               (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost3']))]
+    self.sRBP = [float(kegman.conf['sR_BP0']), 
+                 float(kegman.conf['sR_BP1']), 
+                 float(kegman.conf['sR_BP2']), 
+                 float(kegman.conf['sR_BP3'])]
 
     self.steerRateCost_prev = self.steerRateCost
     self.setup_mpc()
@@ -135,31 +141,42 @@ class PathPlanner():
       if self.steerRateCost != self.steerRateCost_prev:
         self.setup_mpc()
         self.steerRateCost_prev = self.steerRateCost
-          
-        self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost0'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost1'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost2'])), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost3']))]
-        self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1']), float(kegman.conf['sR_BP2']), float(kegman.conf['sR_BP3'])]
-        self.sR_time = int(float(kegman.conf['sR_time'])) * 100
+      
+      #update every time not just if steerRateCost changes
+      self.sR = [(float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost0'])), 
+                 (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost1'])), 
+                 (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost2'])), 
+                 (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost3']))]
+      self.sRBP = [float(kegman.conf['sR_BP0']), 
+                   float(kegman.conf['sR_BP1']), 
+                   float(kegman.conf['sR_BP2']), 
+                   float(kegman.conf['sR_BP3'])]
+      self.sR_time = int(float(kegman.conf['sR_time'])) * 100
          
       self.mpc_frame = 0
     
-    if v_ego > 11.111:
+    #if v_ego > 11.111:
       # boost steerRatio by boost amount if desired steer angle is high
       #self.steerRatio_new = interp(abs(angle_steers), self.sRBP, self.sR)
       
-      self.sR_delay_counter += 1
-      if self.sR_delay_counter % self.sR_time != 0:
-        if self.steerRatio_new > self.steerRatio:
-          self.steerRatio = interp(abs(angle_steers), self.sRBP, self.sR) #self.steerRatio_new
-      else:
-        self.steerRatio = self.steerRatio_new
-        self.sR_delay_counter = 0
-    else:
-      self.steerRatio = self.sR[0]
+      #self.sR_delay_counter += 1
+      #if self.sR_delay_counter % self.sR_time != 0:
+        #if self.steerRatio_new > self.steerRatio:
+          #self.steerRatio = interp(abs(angle_steers), self.sRBP, self.sR) #self.steerRatio_new
+      #else:
+        #self.steerRatio = self.steerRatio_new
+        #self.sR_delay_counter = 0
+    #else:
+      #self.steerRatio = self.sR[0]
     
 
     #joes dynamic sR based off angle_steers
     #self.steerRatio_new = interp(abs(angle_steers), self.sRBP, self.sR)
     #self.steerRatio = self.steerRatio_new - 0.008 * abs(angle_steers)
+    
+    # Always calculate a dynamic steering ratio
+    self.steerRatio = interp(abs(angle_steers), self.sRBP, self.sR)
+    
     print("steerRatio = ", self.steerRatio)
     self.LP.parse_model(sm['model'])
 
@@ -260,14 +277,10 @@ class PathPlanner():
         if not one_blinker or below_lane_change_speed:
           self.lane_change_state = LaneChangeState.off
         elif torque_applied:
-          self.lane_change_state = LaneChangeState.laneChangeStarting
-
-      # starting
-      elif self.lane_change_state == LaneChangeState.laneChangeStarting and lane_change_prob > 0.5:
-        self.lane_change_state = LaneChangeState.laneChangeFinishing
+          self.lane_change_state = LaneChangeState.laneChangeFinishing
 
       # finishing
-      elif self.lane_change_state == LaneChangeState.laneChangeFinishing and lane_change_prob < 0.2:
+      elif self.lane_change_state == LaneChangeState.laneChangeFinishing and lane_change_prob < 0.5:
         if one_blinker:
           self.lane_change_state = LaneChangeState.preLaneChange
         else:

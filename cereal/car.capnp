@@ -130,6 +130,7 @@ struct CarState {
   steeringRateLimited @29 :Bool;    # if the torque is limited by the rate limiter
   stockAeb @30 :Bool;
   stockFcw @31 :Bool;
+  espDisabled @32 :Bool;
 
   # cruise state
   cruiseState @10 :CruiseState;
@@ -154,7 +155,7 @@ struct CarState {
   # clutch (manual transmission only)
   clutchPressed @28 :Bool;
 
-  readdistancelines @32 :Float32;
+  readdistancelines @36 :Float32;
   lkMode @35 :Bool;
 
 
@@ -452,6 +453,7 @@ struct CarParams {
     noOutput @19;  # like silent but without silent CAN TXs
     hondaBoschHarness @20;
     volkswagenPq @21;
+    subaruLegacy @22;  # pre-Global platform
   }
 
   enum SteerControlType {

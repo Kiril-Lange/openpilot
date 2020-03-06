@@ -182,7 +182,10 @@ FW_VERSIONS = {
     (Ecu.unknown, 0x18daeff1, None): [b'38897-TVA-A010\x00\x00'],
   },
   CAR.INSIGHT: {
-    (Ecu.eps,0x18da30f1, None): [b'39990-TXM-A040\x00\x00'],
+    (Ecu.eps,0x18da30f1, None): [
+      b'39990-TXM-A040\x00\x00',
+      b'39990-TXM,A040\x00\x00',
+      ],
   },
   CAR.ACCORD_15: {
     (Ecu.unknown, 0x18da10f1, None): [
@@ -546,7 +549,7 @@ STEER_THRESHOLD = {
   CAR.CIVIC_BOSCH: 1200,
   CAR.CRV: 1200,
   CAR.CRV_5G: 1200,
-  CAR.INSIGHT: 1850,
+  CAR.INSIGHT: 1800,
   CAR.CRV_HYBRID: 1200,
   CAR.FIT: 1200,
   CAR.ODYSSEY: 1200,
