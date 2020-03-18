@@ -24,7 +24,6 @@ VISUAL_HUD = {
 class CAR:
   ACCORD = "HONDA ACCORD 2018 SPORT 2T"
   ACCORD_15 = "HONDA ACCORD 2018 LX 1.5T"
-  ACCORDH = "HONDA ACCORD 2018 HYBRID TOURING"
   CIVIC = "HONDA CIVIC 2016 TOURING"
   CIVIC_BOSCH = "HONDA CIVIC HATCHBACK 2017 SEDAN/COUPE 2019"
   CIVIC_BOSCH_DIESEL = "HONDA CIVIC SEDAN 1.6 DIESEL"
@@ -654,6 +653,10 @@ FW_VERSIONS = {
   CAR.INSIGHT: {
     (Ecu.eps, 0x18da30f1, None): [
       b'39990-TXM-A040\x00\x00',
+<<<<<<< HEAD
+=======
+      b'39990-TXM,A040\x00\x00',
+>>>>>>> b3b98f9a... bring fp v2 to insight - thanks to @wirelessnet2
     ],
     (Ecu.fwdRadar, 0x18dab0f1, None): [
       b'36802-TXM-A070\x00\x00',
@@ -670,7 +673,6 @@ FW_VERSIONS = {
 DBC = {
   CAR.ACCORD: dbc_dict('honda_accord_s2t_2018_can_generated', None),
   CAR.ACCORD_15: dbc_dict('honda_accord_lx15t_2018_can_generated', None),
-  CAR.ACCORDH: dbc_dict('honda_accord_s2t_2018_can_generated', None),
   CAR.ACURA_ILX: dbc_dict('acura_ilx_2016_can_generated', 'acura_ilx_2016_nidec'),
   CAR.ACURA_RDX: dbc_dict('acura_rdx_2018_can_generated', 'acura_ilx_2016_nidec'),
   CAR.CIVIC: dbc_dict('honda_civic_touring_2016_can_generated', 'acura_ilx_2016_nidec'),
@@ -692,7 +694,6 @@ DBC = {
 STEER_THRESHOLD = {
   CAR.ACCORD: 1200,
   CAR.ACCORD_15: 1200,
-  CAR.ACCORDH: 1200,
   CAR.ACURA_ILX: 1200,
   CAR.ACURA_RDX: 400,
   CAR.CIVIC: 1200,
@@ -714,7 +715,6 @@ STEER_THRESHOLD = {
 SPEED_FACTOR = {
   CAR.ACCORD: 1.,
   CAR.ACCORD_15: 1.,
-  CAR.ACCORDH: 1.,
   CAR.ACURA_ILX: 1.,
   CAR.ACURA_RDX: 1.,
   CAR.CIVIC: 1.,
@@ -739,4 +739,9 @@ ECU_FINGERPRINT = {
   Ecu.fwdCamera: [0xE4, 0x194],   # steer torque cmd
 }
 
+<<<<<<< HEAD
 HONDA_BOSCH = [CAR.ACCORD, CAR.ACCORD_15, CAR.ACCORDH, CAR.CIVIC_BOSCH, CAR.CIVIC_BOSCH_DIESEL, CAR.CRV_5G, CAR.CRV_HYBRID, CAR.INSIGHT]
+=======
+# TODO: get these from dbc file
+HONDA_BOSCH = [CAR.ACCORD, CAR.ACCORD_15, CAR.CIVIC_BOSCH, CAR.CRV_5G, CAR.INSIGHT, CAR.CRV_HYBRID]
+>>>>>>> b3b98f9a... bring fp v2 to insight - thanks to @wirelessnet2
