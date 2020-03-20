@@ -96,7 +96,7 @@ def fingerprint(logcan, sendcan, has_relay):
       if cached_params.carName == "mock":
         cached_params = None
 
-    if cached_params is not None annd len(cached_params.carFw) > 0:
+    if cached_params is not None and len(cached_params.carFw) > 0:
       car_fw = get_fw_versions(logcan, sendcan, bus)
       fw_candidates = match_fw_to_car(car_fw)
 
