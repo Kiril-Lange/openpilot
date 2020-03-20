@@ -90,11 +90,18 @@ def fingerprint(logcan, sendcan, has_relay):
     bus = 0
     vin = VIN_UNKNOWN
 
-    car_fw = get_fw_versions(logcan, sendcan, bus)
-    fw_candidates = match_fw_to_car(car_fw)
+    cached_params = Params().get("CarParamsCache")
+    if cache_params is not None:
+      cache_params = car.CarParams.from_bytes(cached_params)
+      if cached_params.carName == "mock":
+        cached_params = None
 
-    if car_fw is None:
-      fw_candidates, car_fw = set(), []
+    if cached_params is not None annd len(cached_params.carFw) > 0:
+      car_fw = get_fw_versions(logcan, sendcan, bus)
+      fw_candidates = match_fw_to_car(car_fw)
+
+      if car_fw is None:
+        fw_candidates, car_fw = set(), []
 
   cloudlog.warning("VIN %s", vin)
   Params().put("CarVin", vin)
