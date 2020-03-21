@@ -37,8 +37,8 @@ _POSE_OFFSET_MAX_COUNT = 360 # stop deweighting new data after 6 min, aka "short
 _RECOVERY_FACTOR_MAX = 5. # relative to minus step change
 _RECOVERY_FACTOR_MIN = 1.25 # relative to minus step change
 
-MAX_TERMINAL_ALERTS = 3 # not allowed to engage after 3 terminal alerts
-MAX_TERMINAL_DURATION = 300 # 30s
+MAX_TERMINAL_ALERTS = 999 # not allowed to engage after 3 terminal alerts
+MAX_TERMINAL_DURATION = 10 # 30s
 
 # model output refers to center of cropped image, so need to apply the x displacement offset
 RESIZED_FOCAL = 320.0
