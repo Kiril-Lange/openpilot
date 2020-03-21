@@ -91,8 +91,8 @@ def fingerprint(logcan, sendcan, has_relay):
     vin = VIN_UNKNOWN
 
     cached_params = Params().get("CarParamsCache")
-    if cache_params is not None:
-      cache_params = car.CarParams.from_bytes(cached_params)
+    if cached_params is not None:
+      cached_params = car.CarParams.from_bytes(cached_params)
       if cached_params.carName == "mock":
         cached_params = None
 
