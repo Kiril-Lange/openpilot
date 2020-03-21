@@ -653,10 +653,7 @@ FW_VERSIONS = {
   CAR.INSIGHT: {
     (Ecu.eps, 0x18da30f1, None): [
       b'39990-TXM-A040\x00\x00',
-<<<<<<< HEAD
-=======
       b'39990-TXM,A040\x00\x00',
->>>>>>> b3b98f9a... bring fp v2 to insight - thanks to @wirelessnet2
     ],
     (Ecu.fwdRadar, 0x18dab0f1, None): [
       b'36802-TXM-A070\x00\x00',
@@ -709,7 +706,7 @@ STEER_THRESHOLD = {
   CAR.PILOT: 1200,
   CAR.PILOT_2019: 1200,
   CAR.RIDGELINE: 1200,
-  CAR.INSIGHT: 1200,
+  CAR.INSIGHT: 1600,
 }
 
 SPEED_FACTOR = {
@@ -739,9 +736,4 @@ ECU_FINGERPRINT = {
   Ecu.fwdCamera: [0xE4, 0x194],   # steer torque cmd
 }
 
-<<<<<<< HEAD
 HONDA_BOSCH = [CAR.ACCORD, CAR.ACCORD_15, CAR.ACCORDH, CAR.CIVIC_BOSCH, CAR.CIVIC_BOSCH_DIESEL, CAR.CRV_5G, CAR.CRV_HYBRID, CAR.INSIGHT]
-=======
-# TODO: get these from dbc file
-HONDA_BOSCH = [CAR.ACCORD, CAR.ACCORD_15, CAR.CIVIC_BOSCH, CAR.CRV_5G, CAR.INSIGHT, CAR.CRV_HYBRID]
->>>>>>> b3b98f9a... bring fp v2 to insight - thanks to @wirelessnet2
