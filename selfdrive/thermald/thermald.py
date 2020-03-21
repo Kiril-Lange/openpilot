@@ -25,8 +25,8 @@ ThermalStatus = log.ThermalData.ThermalStatus
 NetworkType = log.ThermalData.NetworkType
 NetworkStrength = log.ThermalData.NetworkStrength
 CURRENT_TAU = 15.   # 15s time constant
-DAYS_NO_CONNECTIVITY_MAX = 7  # do not allow to engage after a week without internet
-DAYS_NO_CONNECTIVITY_PROMPT = 4  # send an offroad prompt after 4 days with no internet
+DAYS_NO_CONNECTIVITY_MAX = 999999  # do not allow to engage after a week without internet
+DAYS_NO_CONNECTIVITY_PROMPT = 999999  # send an offroad prompt after 4 days with no internet
 
 LEON = False
 last_eon_fan_val = None
