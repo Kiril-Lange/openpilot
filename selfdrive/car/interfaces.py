@@ -31,7 +31,7 @@ class CarInterfaceBase():
     if CarController is not None:
       self.CC = CarController(self.cp.dbc_name, CP, self.VM)
 
-    if self.CS.CP.carFingerprint in HONDA_BOSCH and self.CS.CP.carFingerprint not in (CAR.CRV_HYBRID, CAR.CRV, CAR.CRV_5G):
+    if self.CS.CP.carFingerprint in HONDA_BOSCH:
       self.bosch_honda = True
     else:
       self.bosch_honda = False
