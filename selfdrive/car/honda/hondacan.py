@@ -43,6 +43,15 @@ def create_steering_control(packer, apply_steer, lkas_active, car_fingerprint, i
   bus = get_lkas_cmd_bus(car_fingerprint, has_relay)
   return packer.make_can_msg("STEERING_CONTROL", bus, values, idx)
 
+def create_steering_control_x2(packer, car_fingerprint, idx, has_relay):
+  values = {
+    "BYTE_0": 0x04,
+    "BYTE_1": 0x00,
+    "BYTE_2": 0x80,
+    "BYTE_3": 0x10,
+  }
+  bus = get_lkas_cmd_bus(car_fingerprint, has_relay)
+  return packer.make_can_msg("STEERING_CONTROL_X2", bus, values, idx)
 
 def create_ui_commands(packer, pcm_speed, hud, car_fingerprint, is_metric, idx, has_relay, stock_hud):
   commands = []

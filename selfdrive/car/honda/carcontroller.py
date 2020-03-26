@@ -149,6 +149,11 @@ class CarController():
     can_sends.append(hondacan.create_steering_control(self.packer, apply_steer,
       lkas_active, CS.CP.carFingerprint, idx, CS.CP.isPandaBlack))
 
+    # Try and disable RDM wobble bits in 0xE5
+    if (frame % 2) == 0:
+      idx = (frame // 2) % 4
+      can_sends.append(hondacan.create_steering_control_x2(self.packer, CS.CP.carFingerprint, idx, CS.CP.isPandaBlack))
+
     # Send dashboard UI commands.
     if (frame % 10) == 0:
       idx = (frame//10) % 4
