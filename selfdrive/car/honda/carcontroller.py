@@ -94,6 +94,9 @@ class CarController():
     self.packer = CANPacker(dbc_name)
     self.new_radar_config = False
 
+    # custom
+    self.prev_lead_distance = 0.0 # a non-linear value
+
     self.params = CarControllerParams(CP)
 
   def update(self, enabled, CS, frame, actuators, \
@@ -164,9 +167,14 @@ class CarController():
       if pcm_cancel_cmd:
         can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.CANCEL, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
       elif CS.out.cruiseState.standstill:
-        can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.RES_ACCEL, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
+        if CS.CP.carFingerprint in (CAR.INSIGHT):
+          if CS.lead_distance > (self.prev_lead_distance + 10):
+            can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.RES_ACCEL, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
+        else:
+          can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.RES_ACCEL, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
 
     else:
+      self.prev_lead_distance = CS.lead_distance
       # Send gas and brake commands.
       if (frame % 2) == 0:
         idx = frame // 2
