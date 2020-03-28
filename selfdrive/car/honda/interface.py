@@ -368,9 +368,9 @@ class CarInterface(CarInterfaceBase):
       #ret.lateralParams.torqueBP = [0, 2564, 3584, 4096]
       #ret.lateralParams.torqueV  = [0, 2564, 3584, 4096]
       if eps_modified:
-        ret.lateralParams.torqueBP = [0, 2564, 8192]
-        ret.lateralParams.torqueV  = [0, 2564, 3840]
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.11]]
+        ret.lateralParams.torqueBP = [0, 2566, 8000]
+        ret.lateralParams.torqueV  = [0, 2566, 3840]
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.4], [0.12]]
       else:
         ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 3840], [0, 3840]] # TODO: determine if there is a dead zone at the top end
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.8], [0.24]]
