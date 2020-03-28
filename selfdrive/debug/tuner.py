@@ -2,8 +2,8 @@
 """
 This tool can be used to quickly changes the values in a JSON file used for tuning
 Keys like in vim:
- - h: decrease by 0.05
- - l: increase by 0.05
+ - h: decrease by 0.01
+ - l: increase by 0.01
  - k: move pointer up
  - j: move pointer down
 """
@@ -32,8 +32,9 @@ def main():
     sys.stdout.write("\x1Bc")
 
     for i, (k, v) in enumerate(dat.items()):
-      prefix = "> " if cur == i else "  "
-      print((prefix + k).ljust(20) + "%.2f" % v)
+      if(k != "max_range"):
+        prefix = "> " if cur == i else "  "
+        print((prefix + k).ljust(20) + "%.2f" % v)
 
     key = sys.stdin.read(1)[0]
 
@@ -43,10 +44,10 @@ def main():
     elif key == "j":
       cur = min(len(dat.keys()) - 1, cur + 1)
     elif key == "l":
-      dat[dat.keys()[cur]] += 0.05
+      dat[list(dat.keys())[cur]] += 0.01
       write = True
     elif key == "h":
-      dat[dat.keys()[cur]] -= 0.05
+      dat[list(dat.keys())[cur]] -= 0.01
       write = True
     elif key == "q":
       break
