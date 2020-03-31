@@ -213,11 +213,6 @@ car_started_processes = [
   'locationd',
 ]
 
-if WEBCAM:
-  car_started_processes += [
-    'dmonitoringmodeld',
-  ]
-
 if ANDROID:
   car_started_processes += [
     'sensord',
