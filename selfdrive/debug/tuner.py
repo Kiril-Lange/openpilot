@@ -8,6 +8,7 @@ Keys like in vim:
  - j: move pointer down
 """
 
+import os
 import tty
 import sys
 import json
@@ -24,6 +25,7 @@ def read_tuning():
       pass
 
 def main():
+  os.system('clear')
   dat = json.loads(open(FILENAME, 'r').read())
   dat = OrderedDict(sorted(dat.items(), key=lambda i: i[0]))
 
