@@ -910,6 +910,9 @@ int main() {
     loopback_can = true;
   }
 
+  err = pthread_mutex_init(&usb_lock, NULL);
+  assert(err == 0);
+
   // init libusb
   err = libusb_init(&ctx);
   assert(err == 0);
