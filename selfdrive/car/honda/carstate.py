@@ -339,7 +339,11 @@ class CarState(CarStateBase):
                   ("FCM_OFF", "ACC_HUD", 0),
                   ("FCM_OFF_2", "ACC_HUD", 0),
                   ("FCM_PROBLEM", "ACC_HUD", 0),
-                  ("ICONS", "ACC_HUD", 0)]
+                  ("ICONS", "ACC_HUD", 0),
+                  ("BYTE_0", "STEERING_CONTROL_X2", 0),
+                  ("BYTE_1", "STEERING_CONTROL_X2", 0),
+                  ("BYTE_2", "STEERING_CONTROL_X2", 0),
+                  ("BYTE_3", "STEERING_CONTROL_X2", 0)]
 
 
     # all hondas except CRV, RDX and 2019 Odyssey@China use 0xe4 for steering

@@ -157,17 +157,14 @@ class CarController():
     can_sends.append(hondacan.create_steering_control(self.packer, apply_steer,
       lkas_active, CS.CP.carFingerprint, idx, CS.CP.isPandaBlack))
 
-    # Try and disable RDM wobble bits in 0xE5
-    if (frame % 2) == 0:
-      idx = (frame // 2) % 4
-      can_sends.append(hondacan.create_steering_control_x2(self.packer, CS.CP.carFingerprint, idx, CS.CP.isPandaBlack))
-
     # Send dashboard UI commands.
     if (frame % 10) == 0:
       idx = (frame//10) % 4
       can_sends.extend(hondacan.create_ui_commands(self.packer, pcm_speed, hud, CS.CP.carFingerprint, CS.is_metric, idx, CS.CP.isPandaBlack, CS.stock_hud))
 
     if CS.CP.radarOffCan:
+      if (frame % 2) == 0:
+        can_sends.append(hondacan.create_steering_control_x2(self.packer, CS.CP.carFingerprint, idx, CS.CP.isPandaBlack))
       # If using stock ACC, spam cancel command to kill gas when OP disengages.
       if pcm_cancel_cmd:
         can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.CANCEL, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
