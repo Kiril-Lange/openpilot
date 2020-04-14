@@ -9,7 +9,7 @@
 	url = ../../commaai/laika.git
 [submodule "apks"]
 	path = apks
-	url = ../../commaai/openpilot-apks.git
+	url = ../../theantihero/openpilot-apks.git
 [submodule "cereal"]
 	path = cereal
 	url = ../../commaai/cereal.git
