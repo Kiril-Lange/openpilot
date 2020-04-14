@@ -7,7 +7,7 @@ from selfdrive.car import create_gas_command
 from selfdrive.car.honda import hondacan
 from selfdrive.car.honda.values import CruiseButtons, CAR, VISUAL_HUD, HONDA_BOSCH
 from opendbc.can.packer import CANPacker
-from selfdrive.debug.tuner import read_tuning
+#from selfdrive.debug.tuner import read_tuning
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
@@ -111,9 +111,9 @@ class CarController():
 
     P = self.params
 
-    t = read_tuning()
-    P.STEER_LOOKUP_BP = [v * -1 for v in t["max_range"]][1:][::-1] + list(t["max_range"])
-    P.STEER_MAX = P.STEER_LOOKUP_BP[-1]
+    #t = read_tuning()
+    #P.STEER_LOOKUP_BP = [v * -1 for v in t["max_range"]][1:][::-1] + list(t["max_range"])
+    #P.STEER_MAX = P.STEER_LOOKUP_BP[-1]
 
     # *** apply brake hysteresis ***
     brake, self.braking, self.brake_steady = actuator_hystereses(actuators.brake, self.braking, self.brake_steady, CS.out.vEgo, CS.CP.carFingerprint)

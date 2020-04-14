@@ -2,7 +2,6 @@ from selfdrive.controls.lib.pid import PIController
 from selfdrive.controls.lib.drive_helpers import get_steer_max
 from cereal import car
 from cereal import log
-from selfdrive.debug.tuner import read_tuning
 
 
 class LatControlPID():
@@ -19,11 +18,6 @@ class LatControlPID():
     pid_log = log.ControlsState.LateralPIDState.new_message()
     pid_log.steerAngle = float(angle_steers)
     pid_log.steerRate = float(angle_steers_rate)
-
-    t = read_tuning()
-
-    self.pid._k_p = [[0], [t["kp"]]]
-    self.pid._k_i = [[0], [t["ki"]]]
 
     if v_ego < 0.3 or not active:
       output_steer = 0.0
