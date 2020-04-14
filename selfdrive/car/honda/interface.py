@@ -368,8 +368,8 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2987. * CV.LB_TO_KG + STD_CARGO_KG
       ret.wheelbase = 2.7
       ret.centerToFront = ret.wheelbase * 0.39
-      ret.steerRatio = 15.  # 12.58 is spec end-to-end
-      tire_stiffness_factor = 0.82
+      ret.steerRatio = 15.38  # 12.58 is spec end-to-end
+      tire_stiffness_factor = 0.84
       #ret.lateralParams.torqueBP = [0, 4096, 5120, 8192]
       #ret.lateralParams.torqueV  = [0, 2048, 3072, 4096]
       #ret.lateralParams.torqueBP = [0, 512, 4096, 4352]
@@ -379,9 +379,9 @@ class CarInterface(CarInterfaceBase):
       if eps_modified:
         ret.lateralParams.torqueBP = [0, 1280, 2048, 2688, 3302, 8192]
         ret.lateralParams.torqueV  = [0, 1280, 2048, 2688, 3302, 4096]
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.4], [0.12]]
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.42], [0.16]]
         ret.lateralTuning.pid.kf = 0.00004
-        ret.steerRateCost = 0.4
+        ret.steerRateCost = 0.35
       else:
         ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 3840], [0, 3840]] # TODO: determine if there is a dead zone at the top end
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.8], [0.24]]
