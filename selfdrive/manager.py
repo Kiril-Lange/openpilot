@@ -13,6 +13,7 @@ from selfdrive.swaglog import cloudlog, add_logentries_handler
 
 from common.basedir import BASEDIR, PARAMS
 from common.android import ANDROID
+WEBCAM = os.getenv("WEBCAM") is not None
 sys.path.append(os.path.join(BASEDIR, "pyextra"))
 os.environ['BASEDIR'] = BASEDIR
 
@@ -236,6 +237,11 @@ car_started_processes = [
   'ubloxd',
   'locationd',
 ]
+
+if WEBCAM:
+  car_started_processes += [
+    'dmonitoringmodeld',
+  ]
 
 if ANDROID:
   car_started_processes += [
