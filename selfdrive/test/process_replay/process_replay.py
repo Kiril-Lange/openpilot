@@ -92,7 +92,6 @@ class FakeSubMaster(messaging.SubMaster):
     wait_for_event(self.update_ready)
     self.update_ready.clear()
 
-
   def update_msgs(self, cur_time, msgs):
     wait_for_event(self.update_called)
     self.update_called.clear()
@@ -187,14 +186,8 @@ def radar_rcv_callback(msg, CP, cfg, fsm):
 def calibration_rcv_callback(msg, CP, cfg, fsm):
   # calibrationd publishes 1 calibrationData every 5 cameraOdometry packets.
   # should_recv always true to increment frame
-  if msg.which() == 'carState':
-    if ((fsm.frame +1)% 25) == 0:
-      recv_socks = ["liveCalibration"]
-    else:
-      recv_socks = []
-    return recv_socks, True
-  else:
-    return [], False
+  recv_socks = ["liveCalibration"] if (fsm.frame + 1) % 5 == 0 else []
+  return recv_socks, True
 
 
 CONFIGS = [
@@ -232,8 +225,7 @@ CONFIGS = [
   ProcessConfig(
     proc_name="calibrationd",
     pub_sub={
-      "carState": ["liveCalibration"],
-      "cameraOdometry": []
+      "cameraOdometry": ["liveCalibration"]
     },
     ignore=["logMonoTime", "valid"],
     init_callback=get_car_params,
