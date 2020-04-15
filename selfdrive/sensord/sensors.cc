@@ -226,6 +226,7 @@ void sensor_loop() {
       }
     }
 
+    sensors_close(device);
     delete sensor_events_sock;
     delete c;
   }

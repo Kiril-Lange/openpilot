@@ -880,6 +880,7 @@ static void* light_sensor_thread(void *args) {
     }
   }
 
+  sensors_close(device);
   return NULL;
 
 fail:
