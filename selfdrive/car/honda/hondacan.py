@@ -78,7 +78,7 @@ def create_steering_control(packer, apply_steer, lkas_active, car_fingerprint, i
   bus = get_lkas_cmd_bus(car_fingerprint, has_relay, openpilot_longitudinal_control)
   return packer.make_can_msg("STEERING_CONTROL", bus, values, idx)
 
-def create_steering_control_x2(packer, car_fingerprint, idx, has_relay):
+def create_steering_control_x2(packer, car_fingerprint, idx, has_relay, openpilot_longitudinal_control):
   values = {
     "BYTE_0": 0x04,
     "BYTE_1": 0x00,

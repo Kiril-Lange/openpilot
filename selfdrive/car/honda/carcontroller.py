@@ -189,7 +189,7 @@ class CarController():
 
     if not CS.CP.openpilotLongitudinalControl:
       if (frame % 2) == 0:
-        can_sends.append(hondacan.create_steering_control_x2(self.packer, CS.CP.carFingerprint, idx, CS.CP.isPandaBlack))
+        can_sends.append(hondacan.create_steering_control_x2(self.packer, CS.CP.carFingerprint, idx, CS.CP.isPandaBlack, CS.CP.openpilotLongitudinalControl))
       # If using stock ACC, spam cancel command to kill gas when OP disengages.
       if pcm_cancel_cmd:
         can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.CANCEL, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
