@@ -494,7 +494,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None):
   put_nonblocking("CarParamsCache", cp_bytes)
   put_nonblocking("LongitudinalControl", "1" if CP.openpilotLongitudinalControl else "0")
   # TODO: radar disable hacked together to see if it works
-  disable_radar(can_sock, pm.sock['sendcan'], 1, timeout=1, retry=10)
+  disable_radar(can_sock, pm.sock['sendcan'], 0, timeout=1, retry=10)
 
   CC = car.CarControl.new_message()
   AM = AlertManager()
