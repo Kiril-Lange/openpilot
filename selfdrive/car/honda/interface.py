@@ -377,8 +377,8 @@ class CarInterface(CarInterfaceBase):
       #ret.lateralParams.torqueBP = [0, 2564, 3584, 4096]
       #ret.lateralParams.torqueV  = [0, 2564, 3584, 4096]
       if eps_modified:
-        ret.lateralParams.torqueBP = [0, 1280, 2048, 2688, 3302, 8192]
-        ret.lateralParams.torqueV  = [0, 1280, 2048, 2688, 3302, 4096]
+        ret.lateralParams.torqueBP = [0, 1536, 2027, 2662, 2969, 3071, 7167]
+        ret.lateralParams.torqueV  = [0, 1536, 2048, 2560, 3072, 3584, 4096]
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.42], [0.16]]
         ret.lateralTuning.pid.kf = 0.00004
         ret.steerRateCost = 0.35
