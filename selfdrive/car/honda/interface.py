@@ -413,7 +413,7 @@ class CarInterface(CarInterfaceBase):
       ret.gasMaxBP = [0.0, 1.4082, 2.80311, 4.22661, 5.38271, 6.16561, 7.24781, 8.28308, 10.24465, 12.96402, 15.42303, 18.11903, 20.11703, 24.46614, 29.05805, 32.71015, 35.76326]  # m/s
       ret.gasMaxV = [0.34, 0.37, 0.36, 0.36, 0.358, 0.35, 0.3416, 0.3375, 0.34, 0.342, 0.343, 0.344, 0.345, 0.35, 0.355, 0.35, 0.365] # percentage of gas
       ret.brakeMaxBP = [0., 20.]  # m/s
-      ret.brakeMaxV = [1., 0.5]   # max brake allowed
+      ret.brakeMaxV = [1., 0.8]   # max brake allowed
       #ret.gasMaxBP = [0.]   # m/s
       #ret.gasMaxV = [0.6]
       #ret.brakeMaxBP = [0., 5., 20.]  # m/s
