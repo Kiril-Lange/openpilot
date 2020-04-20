@@ -81,7 +81,7 @@ void model_init(ModelState* s, cl_device_id device_id, cl_context context, int t
 ModelDataRaw model_eval_frame(ModelState* s, cl_command_queue q,
                            cl_mem yuv_cl, int width, int height,
                            mat3 transform, void* sock,
-                           float *desire_in) {
+                           float *desire_in, float *traffic_convention_in) {
 #ifdef DESIRE
   if (desire_in != NULL) {
     for (int i = 0; i < DESIRE_LEN; i++) {
@@ -97,6 +97,13 @@ ModelDataRaw model_eval_frame(ModelState* s, cl_command_queue q,
   }
 #endif
 
+#ifdef TRAFFIC_CONVENTION
+  if (traffic_convention_in != NULL) {
+    for (int i = 0; i < TRAFFIC_CONVENTION_LEN; i++) {
+      s->traffic_convention[i] = traffic_convention_in[i];
+    }
+  }
+#endif
 
   //for (int i = 0; i < OUTPUT_SIZE + TEMPORAL_SIZE; i++) { printf("%f ", s->output[i]); } printf("\n");
 
