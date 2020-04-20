@@ -17,12 +17,7 @@ A_ACC_MAX = max(_A_CRUISE_MAX_V_FOLLOWING)
 ButtonType = car.CarState.ButtonEvent.Type
 
 def compute_gb_honda_bosch(accel, speed):
-  creep_brake = 0.0
-  creep_speed = 2.5
-  creep_brake_value = 0.25
-  if speed < creep_speed:
-    creep_brake = (creep_speed - speed) / creep_speed * creep_brake_value
-  return float(accel) / 3.5 - creep_brake
+  return float(accel) / 3.5
 
 def compute_gb_honda_nidec(accel, speed):
   creep_brake = 0.0
@@ -386,14 +381,14 @@ class CarInterface(CarInterfaceBase):
         ret.lateralParams.torqueV  = [0, 1536, 2048, 2560, 3072, 3584, 4096]
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.4], [0.12]]
         ret.lateralTuning.pid.kf = 0.00004
-        ret.steerRateCost = 0.35
+        ret.steerRateCost = 0.3
       else:
         ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 4096], [0, 4096]] # TODO: determine if there is a dead zone at the top end
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.8], [0.24]]
-      ret.longitudinalTuning.kpBP = [0., 5., 35.]
+      ret.longitudinalTuning.kpBP = [0., 12., 35.]
       ret.longitudinalTuning.kpV = [1., 0.8, 0.5]
       ret.longitudinalTuning.kiBP = [0., 35.]
-      ret.longitudinalTuning.kiV = [0.18, 0.12]
+      ret.longitudinalTuning.kiV = [0.12, 0.1]
 
 
     else:
