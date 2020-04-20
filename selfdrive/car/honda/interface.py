@@ -17,7 +17,12 @@ A_ACC_MAX = max(_A_CRUISE_MAX_V_FOLLOWING)
 ButtonType = car.CarState.ButtonEvent.Type
 
 def compute_gb_honda_bosch(accel, speed):
-  return float(accel) / 3.5
+  creep_brake = 0.0
+  creep_speed = 2.5
+  creep_brake_value = 0.25
+  if speed < creep_speed:
+    creep_brake = (creep_speed - speed) / creep_speed * creep_brake_value
+  return float(accel) / 3.5 - creep_brake
 
 def compute_gb_honda_nidec(accel, speed):
   creep_brake = 0.0
@@ -386,9 +391,9 @@ class CarInterface(CarInterfaceBase):
         ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 4096], [0, 4096]] # TODO: determine if there is a dead zone at the top end
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.8], [0.24]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
-      ret.longitudinalTuning.kpV = [3.6, 2.4, 1.5]
+      ret.longitudinalTuning.kpV = [1., 0.8, 0.5]
       ret.longitudinalTuning.kiBP = [0., 35.]
-      ret.longitudinalTuning.kiV = [0.54, 0.36]
+      ret.longitudinalTuning.kiV = [0.18, 0.12]
 
 
     else:
@@ -410,12 +415,12 @@ class CarInterface(CarInterfaceBase):
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront,
                                                                          tire_stiffness_factor=tire_stiffness_factor)
     if candidate in HONDA_BOSCH:
-      ret.gasMaxBP = [0.0, 1.4082, 2.80311, 4.22661, 5.38271, 6.16561, 7.24781, 8.28308, 10.24465, 12.96402, 15.42303, 18.11903, 20.11703, 24.46614, 29.05805, 32.71015, 35.76326]  # m/s
-      ret.gasMaxV = [0.34, 0.37, 0.36, 0.36, 0.358, 0.35, 0.3416, 0.3375, 0.34, 0.342, 0.343, 0.344, 0.345, 0.35, 0.355, 0.35, 0.365] # percentage of gas
-      ret.brakeMaxBP = [0., 20.]  # m/s
-      ret.brakeMaxV = [1., 0.8]   # max brake allowed
-      #ret.gasMaxBP = [0.]   # m/s
-      #ret.gasMaxV = [0.6]
+      #ret.gasMaxBP = [0.0, 1.4082, 2.80311, 4.22661, 5.38271, 6.16561, 7.24781, 8.28308, 10.24465, 12.96402, 15.42303, 18.11903, 20.11703, 24.46614, 29.05805, 32.71015, 35.76326]  # m/s
+      #ret.gasMaxV = [0.34, 0.37, 0.36, 0.36, 0.358, 0.35, 0.3416, 0.3375, 0.34, 0.342, 0.343, 0.344, 0.345, 0.35, 0.355, 0.35, 0.365] # percentage of gas
+      ret.brakeMaxBP = [0.]  # m/s
+      ret.brakeMaxV = [1.]   # max brake allowed
+      ret.gasMaxBP = [0.]   # m/s
+      ret.gasMaxV = [0.6]
       #ret.brakeMaxBP = [0., 5., 20.]  # m/s
       #ret.brakeMaxV = [1., 1., 0.8]   # max brake allowed
     else:
