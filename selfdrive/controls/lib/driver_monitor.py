@@ -5,7 +5,13 @@ from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
 from common.filter_simple import FirstOrderFilter
 from common.stat_live import RunningStatFilter
 
-_AWARENESS_TIME = 86400.  # one minute limit without user touching steering wheels make the car enter a terminal status
+# ******************************************************************************************
+#  NOTE: To fork maintainers.
+#  Disabling or nerfing safety features may get you and your users banned from our servers.
+#  We recommend that you do not change these numbers from the defaults.
+# ******************************************************************************************
+
+_AWARENESS_TIME = 70.  # one minute limit without user touching steering wheels make the car enter a terminal status
 _AWARENESS_PRE_TIME_TILL_TERMINAL = 15.  # a first alert is issued 25s before expiration
 _AWARENESS_PROMPT_TIME_TILL_TERMINAL = 6.  # a second alert is issued 15s before start decelerating the car
 _DISTRACTED_TIME = 11.
